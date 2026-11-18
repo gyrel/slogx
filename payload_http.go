@@ -2,10 +2,13 @@ package slogx
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -26,24 +29,26 @@ func HTTPRequest(name string, r *http.Request, opts ...DumpOption) slog.Attr {
 }
 
 // HTTPRequestWith logs a sanitized HTTP request using logger dump settings.
+//
+// The request body is never logged. Only its size, SHA-256 digest of the
+// inspected prefix and a truncation marker are recorded. The body is restored
+// for downstream handlers, including the bytes past the inspection limit.
 func HTTPRequestWith(l *Logger, name string, r *http.Request, opts ...DumpOption) slog.Attr {
 	if r == nil {
 		return slog.String(name, "nil")
 	}
 	cfg := loadDumpConfig(l)
-	body, truncated := readBody(r.Body, cfg.DumpMaxFields*256)
-	RestoreBody(r, body)
+	body, truncated, restored := captureBody(r.Body, bodyLimit(cfg))
+	r.Body = restored
 	payload := map[string]any{
 		attrMethod: r.Method,
-		"url":      r.URL.String(),
+		"url":      safeURL(r.URL),
 		"headers":  sanitizeHeaders(r.Header, cfg),
 	}
-	if body != "" {
-		payload["body"] = body
+	if r.URL != nil && r.URL.RawQuery != "" {
+		payload["url_query_redacted"] = true
 	}
-	if truncated {
-		payload["body_truncated"] = true
-	}
+	addBodyMeta(payload, body, truncated)
 	return slog.Any(name, Serialize(cfg, payload, opts...))
 }
 
@@ -53,22 +58,21 @@ func HTTPResponse(name string, r *http.Response, opts ...DumpOption) slog.Attr {
 }
 
 // HTTPResponseWith logs a sanitized HTTP response using logger dump settings.
+//
+// Like HTTPRequestWith, the response body is summarized instead of logged and
+// restored for downstream readers.
 func HTTPResponseWith(l *Logger, name string, r *http.Response, opts ...DumpOption) slog.Attr {
 	if r == nil {
 		return slog.String(name, "nil")
 	}
 	cfg := loadDumpConfig(l)
-	body, truncated := readBody(r.Body, cfg.DumpMaxFields*256)
+	body, truncated, restored := captureBody(r.Body, bodyLimit(cfg))
+	r.Body = restored
 	payload := map[string]any{
 		"status":  r.Status,
 		"headers": sanitizeHeaders(r.Header, cfg),
 	}
-	if body != "" {
-		payload["body"] = body
-	}
-	if truncated {
-		payload["body_truncated"] = true
-	}
+	addBodyMeta(payload, body, truncated)
 	return slog.Any(name, Serialize(cfg, payload, opts...))
 }
 
@@ -141,26 +145,79 @@ func headerValue(vals []string) any {
 	return vals
 }
 
-func readBody(body io.ReadCloser, limit int) (string, bool) {
+func bodyLimit(cfg Config) int {
+	if cfg.DumpMaxBodyBytes > 0 {
+		return cfg.DumpMaxBodyBytes
+	}
+	return 16 * 1024
+}
+
+// captureBody reads at most limit+1 bytes for inspection and returns a reader
+// that replays every byte read plus the still-unread remainder. The original
+// closer stays owned by the returned ReadCloser.
+func captureBody(body io.ReadCloser, limit int) ([]byte, bool, io.ReadCloser) {
 	if body == nil {
-		return "", false
+		return nil, false, nil
 	}
 	if limit <= 0 {
 		limit = 4096
 	}
-	data, err := io.ReadAll(io.LimitReader(body, int64(limit+1)))
+	data, err := io.ReadAll(io.LimitReader(body, int64(limit)+1))
 	if err != nil {
-		return "", false
+		// The stream state is unreliable after a read error. Preserve what was
+		// read without logging the raw error text.
+		return data, false, &bodyReadCloser{Reader: bytes.NewReader(data), Closer: body}
 	}
 	truncated := len(data) > limit
+	logged := data
 	if truncated {
-		data = data[:limit]
+		logged = data[:limit]
 	}
-	_ = body.Close()
-	return string(data), truncated
+	return logged, truncated, &bodyReadCloser{
+		Reader: io.MultiReader(bytes.NewReader(data), body),
+		Closer: body,
+	}
 }
 
-// RestoreBody replaces r.Body after logging so downstream handlers can still read it.
+type bodyReadCloser struct {
+	io.Reader
+	io.Closer
+}
+
+func addBodyMeta(payload map[string]any, body []byte, truncated bool) {
+	if len(body) > 0 {
+		sum := sha256.Sum256(body)
+		payload["body_bytes"] = len(body)
+		payload["body_sha256"] = hex.EncodeToString(sum[:])
+	}
+	if truncated {
+		payload["body_truncated"] = true
+	}
+}
+
+// safeURL returns a URL without credentials, query values or fragment.
+func safeURL(u *url.URL) string {
+	if u == nil {
+		return ""
+	}
+	clean := *u
+	clean.User = nil
+	clean.RawQuery = ""
+	clean.ForceQuery = false
+	clean.Fragment = ""
+	clean.RawFragment = ""
+	if clean.Opaque != "" {
+		clean.Opaque = ""
+		if clean.Host == "" {
+			return ""
+		}
+	}
+	return clean.String()
+}
+
+// RestoreBody replaces r.Body with an in-memory reader. The HTTP payload
+// helpers already restore bodies automatically; this is only for callers that
+// consumed a body themselves.
 func RestoreBody(r *http.Request, body string) {
 	if r == nil {
 		return

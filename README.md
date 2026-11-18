@@ -130,10 +130,15 @@ log.Info("grpc", slogx.GRPCCallWith(log, "call", "/svc.Method", body, md))
 A fixed set of sensitive headers (`Authorization`, `Cookie`, `Set-Cookie`,
 `X-Api-Key`, `X-Auth-Token`, `Proxy-Authorization`) and their gRPC metadata
 equivalents is replaced with `[SECRET]`; configured key rules are also applied.
-HTTP request and response bodies are read up to a size limit; request bodies are
-restored for downstream handlers. HTTP bodies and request URLs are not parsed or
-masked. gRPC payloads are traversed by the dumper and masked only by configured key
-rules. See [Security limits](#security-limits).
+
+Payload values are summarized, not logged. HTTP bodies produce `body_bytes` and
+`body_sha256` for the inspected prefix plus `body_truncated` when the limit is
+exceeded; the full body is restored for downstream readers. URLs are logged without
+userinfo, query values, or fragments, and `url_query_redacted` marks a stripped
+query. gRPC request, response, and stream values produce `<kind>_type`,
+`<kind>_bytes`, and `<kind>_sha256` from their bounded, masked serialization. Raw
+bodies and payload values never reach the log record. Use `WithDumpBodyLimit` to
+bound inspection; the default is 16 KiB. See [Security limits](#security-limits).
 
 ## Runtime config
 
@@ -169,12 +174,13 @@ from logs.
 - **Errors and paths are raw.** `Err` logs the error string unchanged, and
   `AddSource`/stack traces include file paths. Error text frequently contains
   endpoints, queries, or user data, so callers must sanitize before logging.
-- **Payload helpers are partial.** HTTP request URLs include query values, and HTTP
-  bodies are logged verbatim up to the size limit. gRPC payloads are traversed by
-  the dumper and masked only by configured key rules. gRPC metadata is filtered by
-  key rules and the fixed header list; it does not run corporate value
-  auto-detection. HTTP request-body logging consumes and replaces the body; after
-  truncation, downstream readers see only the logged prefix.
+- **Payload helpers are metadata-only.** HTTP bodies and gRPC payload values are
+  never written to the log; only type, size, and SHA-256 fields are recorded, so
+  correlation does not reveal content. HTTP paths remain in the logged URL and may
+  carry secret-shaped segments; query values, userinfo, and fragments are removed.
+  gRPC metadata is filtered by key rules and the fixed header list; it does not run
+  corporate value auto-detection. Body digests cover the inspected prefix when
+  `body_truncated` is true. Downstream readers receive the complete body.
 - **Removal is exact-key based.** `RemovalSet` entries match the normalized full key
   or the leaf attribute name. Nested map and struct values are only inspected by
   `Dump`, not by the handler.

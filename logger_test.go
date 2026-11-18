@@ -3,6 +3,8 @@ package slogx
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -248,7 +250,8 @@ func TestHTTPRequestSanitizesHeaders(t *testing.T) {
 	}
 	SetGlobalDumpConfig(&cfg)
 
-	req, err := http.NewRequest(http.MethodPost, "https://api.example.com/v1/users", strings.NewReader(`{"name":"Alice"}`))
+	const payload = `{"name":"Alice"}`
+	req, err := http.NewRequest(http.MethodPost, "https://api.example.com/v1/users", strings.NewReader(payload))
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer secret-token")
 	req.Header.Set("Content-Type", "application/json")
@@ -258,12 +261,18 @@ func TestHTTPRequestSanitizesHeaders(t *testing.T) {
 	headers := val["headers"].(map[string]any)
 	assert.Equal(t, "[SECRET]", headers["Authorization"])
 	assert.Equal(t, "application/json", headers["Content-Type"])
-	assert.Equal(t, `{"name":"Alice"}`, val["body"])
+
+	// The body is summarized, never logged verbatim.
+	assert.NotContains(t, val, "body")
+	assert.Equal(t, len(payload), val["body_bytes"])
+	sum := sha256.Sum256([]byte(payload))
+	assert.Equal(t, hex.EncodeToString(sum[:]), val["body_sha256"])
+	assert.NotContains(t, fmt.Sprint(val), "Alice")
 
 	// Body must be restored for downstream readers.
 	body, err := io.ReadAll(req.Body)
 	require.NoError(t, err)
-	assert.Equal(t, `{"name":"Alice"}`, string(body))
+	assert.Equal(t, payload, string(body))
 }
 
 func TestHTTPResponseSanitize(t *testing.T) {
@@ -272,16 +281,64 @@ func TestHTTPResponseSanitize(t *testing.T) {
 		MaskKeys: MaskMap{}, RemoveKeys: RemoveMap{}, Masker: &DefaultMasker{},
 	}
 	SetGlobalDumpConfig(&cfg)
+	const payload = `{"ok":true}`
 	resp := &http.Response{
 		Status: "200 OK",
 		Header: http.Header{"Set-Cookie": []string{"a=b"}, "X-Req": []string{"1"}},
-		Body:   io.NopCloser(strings.NewReader(`{"ok":true}`)),
+		Body:   io.NopCloser(strings.NewReader(payload)),
 	}
 	attr := HTTPResponse("response", resp)
 	val := attr.Value.Any().(map[string]any)
 	headers := val["headers"].(map[string]any)
 	assert.Equal(t, "[SECRET]", headers["Set-Cookie"])
 	assert.Equal(t, "1", headers["X-Req"])
+	assert.NotContains(t, val, "body")
+	assert.Equal(t, len(payload), val["body_bytes"])
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, payload, string(body))
+}
+
+func TestHTTPRequestRedactsURLSecrets(t *testing.T) {
+	cfg := Config{
+		DumpMaxDepth: 5, DumpMaxFields: 64,
+		MaskKeys: MaskMap{}, RemoveKeys: RemoveMap{}, Masker: &DefaultMasker{},
+	}
+	SetGlobalDumpConfig(&cfg)
+
+	req, err := http.NewRequest(http.MethodGet,
+		"https://user:password@api.example.com/v1/users?token=url-secret#fragment", nil)
+	require.NoError(t, err)
+
+	val := HTTPRequest("request", req).Value.Any().(map[string]any)
+	assert.Equal(t, "https://api.example.com/v1/users", val["url"])
+	assert.Equal(t, true, val["url_query_redacted"])
+	rendered := fmt.Sprint(val)
+	assert.NotContains(t, rendered, "url-secret")
+	assert.NotContains(t, rendered, "password")
+	assert.NotContains(t, rendered, "fragment")
+}
+
+func TestHTTPRequestTruncationPreservesFullBody(t *testing.T) {
+	cfg := Config{
+		DumpMaxDepth: 5, DumpMaxFields: 64, DumpMaxBodyBytes: 256,
+		MaskKeys: MaskMap{}, RemoveKeys: RemoveMap{}, Masker: &DefaultMasker{},
+	}
+	SetGlobalDumpConfig(&cfg)
+
+	payload := strings.Repeat("a", 300) + "tail-marker"
+	req, err := http.NewRequest(http.MethodPost, "https://api.example.com/v1/upload", strings.NewReader(payload))
+	require.NoError(t, err)
+
+	val := HTTPRequest("request", req).Value.Any().(map[string]any)
+	assert.Equal(t, 256, val["body_bytes"])
+	assert.Equal(t, true, val["body_truncated"])
+	assert.NotContains(t, fmt.Sprint(val), "tail-marker")
+
+	body, err := io.ReadAll(req.Body)
+	require.NoError(t, err)
+	assert.Equal(t, payload, string(body), "downstream must receive the complete body")
 }
 
 func TestGRPCCallSanitizesMetadata(t *testing.T) {
@@ -300,6 +357,13 @@ func TestGRPCCallSanitizesMetadata(t *testing.T) {
 	meta := val["metadata"].(map[string]any)
 	assert.Equal(t, "[SECRET]", meta["authorization"])
 	assert.Equal(t, "req-1", meta["x-request-id"])
+
+	// The request value is represented by type and digest only.
+	assert.NotContains(t, val, "request")
+	assert.Equal(t, "slogx.CreateUserRequest", val["request_type"])
+	assert.NotZero(t, val["request_bytes"])
+	assert.NotEmpty(t, val["request_sha256"])
+	assert.NotContains(t, fmt.Sprint(val), "bob@example.com")
 }
 
 func TestGRPCResponseAndStream(t *testing.T) {

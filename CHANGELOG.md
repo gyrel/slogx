@@ -21,9 +21,18 @@ retain their original module-path references for traceability.
   attribution in `NOTICE`.
 - Document the limits of key-based masking, heuristic detection, fingerprinting,
   payload helpers, and context fallback.
+- HTTP payload helpers now log only method, origin/path, sanitized headers, body
+  size, and a SHA-256 digest. Userinfo, query values, fragments, and raw bodies are
+  never recorded. gRPC helpers replace serialized request/response/stream values
+  with type, size, and digest fields.
+- Add `WithDumpBodyLimit` (default 16 KiB) and `Config.DumpMaxBodyBytes` to bound
+  payload inspection without affecting serialization field limits.
 
 ### Fixed
 
+- HTTP payload helpers now restore the complete request and response body for
+  downstream readers, including bytes past the inspection limit; previously a
+  truncated snapshot replaced the body with only the logged prefix.
 - `FromContext` fallback loggers now honor the documented `FatalContext` contract by
   exiting via `os.Exit(1)` instead of silently returning. The fallback still reuses the
   `WithExitFunc` hook when the default handler was installed with it.

@@ -27,7 +27,8 @@ func main() {
 	ctx := context.Background()
 
 	// Sensitive headers (Authorization, Cookie, ...) are redacted automatically.
-	// Body is read up to a limit and Request.Body is restored for downstream use.
+	// The body is summarized (size and digest), never logged verbatim, and
+	// Request.Body is restored for downstream use.
 	log.InfoContext(ctx, "incoming http request",
 		slogx.HTTPRequestWith(log, "request", req),
 	)

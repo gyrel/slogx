@@ -40,8 +40,9 @@ type Config struct {
 	SpanIDKey      string
 	TraceSampleKey string
 
-	DumpMaxDepth  int
-	DumpMaxFields int
+	DumpMaxDepth     int
+	DumpMaxFields    int
+	DumpMaxBodyBytes int
 }
 
 // Clone creates a deep copy of Config for copy-on-write updates.
@@ -237,6 +238,16 @@ func WithDumpLimits(maxDepth, maxFields int) Option {
 	}
 }
 
+// WithDumpBodyLimit sets how many body bytes HTTP payload helpers inspect.
+// Bodies are never logged; the limit bounds the digest work and memory use.
+func WithDumpBodyLimit(bytes int) Option {
+	return func(o *options) {
+		if bytes > 0 {
+			o.initialConfig.DumpMaxBodyBytes = bytes
+		}
+	}
+}
+
 // WithExitFunc overrides the process exit function used by Fatal.
 func WithExitFunc(fn func(int)) Option {
 	return func(o *options) {
@@ -255,19 +266,20 @@ func defaultOptions() *options {
 	return &options{
 		exitFunc: os.Exit,
 		initialConfig: &Config{
-			Level:          slog.LevelInfo,
-			Format:         FormatText,
-			Output:         os.Stdout,
-			MaskKeys:       make(MaskMap),
-			RemoveKeys:     make(RemoveMap),
-			LevelNames:     ln,
-			Masker:         &DefaultMasker{},
-			StackDepth:     32,
-			TraceIDKey:     "trace_id",
-			SpanIDKey:      "span_id",
-			TraceSampleKey: "trace_sampled",
-			DumpMaxDepth:   5,
-			DumpMaxFields:  64,
+			Level:            slog.LevelInfo,
+			Format:           FormatText,
+			Output:           os.Stdout,
+			MaskKeys:         make(MaskMap),
+			RemoveKeys:       make(RemoveMap),
+			LevelNames:       ln,
+			Masker:           &DefaultMasker{},
+			StackDepth:       32,
+			TraceIDKey:       "trace_id",
+			SpanIDKey:        "span_id",
+			TraceSampleKey:   "trace_sampled",
+			DumpMaxDepth:     5,
+			DumpMaxFields:    64,
+			DumpMaxBodyBytes: 16 * 1024,
 		},
 	}
 }

@@ -1,6 +1,9 @@
 package slogx
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -19,9 +22,9 @@ func GRPCCallWith(l *Logger, name, method string, req any, md Metadata, opts ...
 	cfg := loadDumpConfig(l)
 	payload := map[string]any{
 		attrMethod: method,
-		"request":  Serialize(cfg, req, opts...),
 		"metadata": sanitizeMetadata(md, cfg),
 	}
+	addSerializedMeta(payload, "request", cfg, req, opts...)
 	return slog.Any(name, payload)
 }
 
@@ -33,9 +36,9 @@ func GRPCResponse(name string, resp any, opts ...DumpOption) slog.Attr {
 // GRPCResponseWith logs a sanitized gRPC response using logger dump settings.
 func GRPCResponseWith(l *Logger, name string, resp any, opts ...DumpOption) slog.Attr {
 	cfg := loadDumpConfig(l)
-	return slog.Any(name, map[string]any{
-		"response": Serialize(cfg, resp, opts...),
-	})
+	payload := map[string]any{}
+	addSerializedMeta(payload, "response", cfg, resp, opts...)
+	return slog.Any(name, payload)
 }
 
 // GRPCStreamEvent logs a streaming gRPC event with optional metadata.
@@ -46,12 +49,30 @@ func GRPCStreamEvent(name, method, event string, msg any, md Metadata, opts ...D
 // GRPCStreamEventWith logs a streaming gRPC event using logger dump settings.
 func GRPCStreamEventWith(l *Logger, name, method, event string, msg any, md Metadata, opts ...DumpOption) slog.Attr {
 	cfg := loadDumpConfig(l)
-	return slog.Any(name, map[string]any{
+	payload := map[string]any{
 		attrMethod: method,
 		"event":    event,
-		"message":  Serialize(cfg, msg, opts...),
 		"metadata": sanitizeMetadata(md, cfg),
-	})
+	}
+	addSerializedMeta(payload, "message", cfg, msg, opts...)
+	return slog.Any(name, payload)
+}
+
+// addSerializedMeta records the type and a digest of the bounded, masked
+// serialization. Raw payload values are never written to the log.
+func addSerializedMeta(payload map[string]any, prefix string, cfg Config, value any, opts ...DumpOption) {
+	if value == nil {
+		return
+	}
+	payload[prefix+"_type"] = fmt.Sprintf("%T", value)
+	data, err := json.Marshal(Serialize(cfg, value, opts...))
+	if err != nil {
+		payload[prefix+"_serialization_error"] = true
+		return
+	}
+	sum := sha256.Sum256(data)
+	payload[prefix+"_bytes"] = len(data)
+	payload[prefix+"_sha256"] = hex.EncodeToString(sum[:])
 }
 
 func sanitizeMetadata(md Metadata, cfg Config) map[string]any {

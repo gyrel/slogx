@@ -130,9 +130,10 @@ func TestSanitizeMetadataAndHeadersExtras(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, []string{"1", "2"}, headers["X-Multi"])
 
-	body, truncated := readBody(nil, 0)
-	assert.Equal(t, "", body)
+	body, truncated, restored := captureBody(nil, 0)
+	assert.Nil(t, body)
 	assert.False(t, truncated)
+	assert.Nil(t, restored)
 	RestoreBody(nil, "")
 }
 

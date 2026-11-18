@@ -326,11 +326,12 @@ func Serialize(cfg Config, v any, opts ...DumpOption) any {
 // SerializeDefault uses Default dump limits and masking rules.
 func SerializeDefault(v any, opts ...DumpOption) any {
 	return Serialize(Config{
-		DumpMaxDepth:  5,
-		DumpMaxFields: 64,
-		MaskKeys:      make(MaskMap),
-		RemoveKeys:    make(RemoveMap),
-		Masker:        &DefaultMasker{},
+		DumpMaxDepth:     5,
+		DumpMaxFields:    64,
+		DumpMaxBodyBytes: 16 * 1024,
+		MaskKeys:         make(MaskMap),
+		RemoveKeys:       make(RemoveMap),
+		Masker:           &DefaultMasker{},
 	}, v, opts...)
 }
 
@@ -356,10 +357,11 @@ func loadDumpConfig(l *Logger) Config {
 		return *cfg
 	}
 	return Config{
-		DumpMaxDepth:  5,
-		DumpMaxFields: 64,
-		MaskKeys:      make(MaskMap),
-		RemoveKeys:    make(RemoveMap),
-		Masker:        &DefaultMasker{},
+		DumpMaxDepth:     5,
+		DumpMaxFields:    64,
+		DumpMaxBodyBytes: 16 * 1024,
+		MaskKeys:         make(MaskMap),
+		RemoveKeys:       make(RemoveMap),
+		Masker:           &DefaultMasker{},
 	}
 }
