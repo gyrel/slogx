@@ -7,9 +7,8 @@ path is `github.com/rheic/slogx`.
 [![CI](https://github.com/rheic/slogx/actions/workflows/ci.yml/badge.svg)](https://github.com/rheic/slogx/actions/workflows/ci.yml)
 [![Go 1.27.4+](https://img.shields.io/badge/Go-1.27.4+-blue)](https://go.dev/dl/)
 
-> Status: alpha. This repository has no published release yet. Treat masking as
-> defense in depth, not as a guarantee that secrets cannot reach logs. See
-> [Security limits](#security-limits).
+> Status: alpha. Treat masking as defense in depth, not as a guarantee that
+> secrets cannot reach logs. See [Security limits](#security-limits).
 
 ## Features
 
@@ -24,12 +23,11 @@ path is `github.com/rheic/slogx`.
 
 ## Install
 
-The module path is `github.com/rheic/slogx`. No tagged release exists yet,
-so external `go get` is not supported until the first release. Inside the Rheic
-workspace, use the sibling checkout and pin a tag once one is published:
+The module path is `github.com/rheic/slogx`. The first release is `v0.1.0`;
+expect 0.x API changes until a 1.0 tag is published:
 
 ```bash
-go get github.com/rheic/slogx@<tag>
+go get github.com/rheic/slogx@v0.1.0
 ```
 
 For local development run checks with the module's own dependency graph:

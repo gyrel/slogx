@@ -10,6 +10,8 @@ retain their original module-path references for traceability.
 
 ## [Unreleased]
 
+## [v0.1.0] - 2026-11-18
+
 ### Changed
 
 - Import the owner-authorized MIT-licensed `quarshell-slogx` sources from the
