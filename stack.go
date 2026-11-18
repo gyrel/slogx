@@ -8,7 +8,7 @@ import (
 
 const (
 	stackSkipFrames     = 4
-	internalPackagePath = "github.com/rheic/sandboxes-logger"
+	internalPackagePath = "github.com/rheic/slogx"
 )
 
 func stackTrace(depth int) string {

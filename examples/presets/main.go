@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rheic/sandboxes-logger"
+	"github.com/rheic/slogx"
 )
 
 func main() {

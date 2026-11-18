@@ -10,7 +10,7 @@ The original sources are licensed under the MIT License. The LICENSE file in thi
 repository retains that copyright notice and license text.
 
 Changes made for this repository: module path renamed to
-github.com/rheic/sandboxes-logger, Go version updated to 1.27.4, imports and
+github.com/rheic/slogx, Go version updated to 1.27.4, imports and
 examples updated, documentation and CI adapted, the limits of the imported
 masking behavior documented, the stack-trace internal-frame filter updated to
 the new module path, and the FromContext fallback aligned with the documented

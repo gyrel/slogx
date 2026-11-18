@@ -1,4 +1,4 @@
-module github.com/rheic/sandboxes-logger
+module github.com/rheic/slogx
 
 go 1.27.4
 

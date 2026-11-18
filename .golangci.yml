@@ -1,4 +1,4 @@
-# GolangCI-Lint v2 configuration for sandboxes-logger
+# GolangCI-Lint v2 configuration for slogx
 version: "2"
 
 run:
@@ -94,4 +94,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/rheic/sandboxes-logger
+        - github.com/rheic/slogx

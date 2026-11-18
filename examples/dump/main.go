@@ -4,7 +4,7 @@ package main
 import (
 	"context"
 
-	"github.com/rheic/sandboxes-logger"
+	"github.com/rheic/slogx"
 )
 
 type Address struct {

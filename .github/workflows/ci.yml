@@ -1,6 +1,6 @@
 name: CI
 
-# CI baseline for sandboxes-logger:
+# CI baseline for slogx:
 # - Go version pinned to 1.27.4 with GOTOOLCHAIN=local
 # - Tests run with the race detector
 # - Examples are built and executed but excluded from coverage
@@ -78,7 +78,7 @@ jobs:
           use_oidc: true
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.txt
-          name: codecov-sandboxes-logger
+          name: codecov-slogx
           fail_ci_if_error: false
 
   lint:

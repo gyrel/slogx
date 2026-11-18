@@ -16,7 +16,7 @@ retain their original module-path references for traceability.
   `rheic/quarshell` archive at `archive-sources/quarshell-slogx`, commit
   `ac476dcc0e89b4efc9c3b2b484054026d9d32275`.
 - Rename the module path from `github.com/KLORQ/quarshell-slogx` to
-  `github.com/rheic/sandboxes-logger` and update examples, documentation, and CI.
+  `github.com/rheic/slogx` and update examples, documentation, and CI.
 - Require Go 1.27.4 and retain the original MIT copyright notice with source
   attribution in `NOTICE`.
 - Document the limits of key-based masking, heuristic detection, fingerprinting,

@@ -1,10 +1,10 @@
-# sandboxes-logger
+# slogx
 
 Structured logging helpers for Rheic components, built on Go's
 [`log/slog`](https://pkg.go.dev/log/slog). The Go package name is `slogx`; the module
-path is `github.com/rheic/sandboxes-logger`.
+path is `github.com/rheic/slogx`.
 
-[![CI](https://github.com/rheic/sandboxes-logger/actions/workflows/ci.yml/badge.svg)](https://github.com/rheic/sandboxes-logger/actions/workflows/ci.yml)
+[![CI](https://github.com/rheic/slogx/actions/workflows/ci.yml/badge.svg)](https://github.com/rheic/slogx/actions/workflows/ci.yml)
 [![Go 1.27.4+](https://img.shields.io/badge/Go-1.27.4+-blue)](https://go.dev/dl/)
 
 > Status: alpha. This repository has no published release yet. Treat masking as
@@ -24,12 +24,12 @@ path is `github.com/rheic/sandboxes-logger`.
 
 ## Install
 
-The module path is `github.com/rheic/sandboxes-logger`. No tagged release exists yet,
+The module path is `github.com/rheic/slogx`. No tagged release exists yet,
 so external `go get` is not supported until the first release. Inside the Rheic
 workspace, use the sibling checkout and pin a tag once one is published:
 
 ```bash
-go get github.com/rheic/sandboxes-logger@<tag>
+go get github.com/rheic/slogx@<tag>
 ```
 
 For local development run checks with the module's own dependency graph:
@@ -47,7 +47,7 @@ import (
     "context"
     "log/slog"
 
-    "github.com/rheic/sandboxes-logger"
+    "github.com/rheic/slogx"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-# Contributing to sandboxes-logger
+# Contributing to slogx
 
 Thank you for your interest in contributing!
 
@@ -10,8 +10,8 @@ Thank you for your interest in contributing!
 ## Quick Start
 
 ```bash
-git clone https://github.com/rheic/sandboxes-logger
-cd sandboxes-logger
+git clone https://github.com/rheic/slogx
+cd slogx
 
 GOWORK=off go build ./...
 GOWORK=off go test -race ./...

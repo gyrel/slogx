@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-Release Validation Script for sandboxes-logger
+# Pre-Release Validation Script for slogx
 # Mirrors CI checks + additional local validations.
 #
 # Usage:
@@ -27,7 +27,7 @@ log_error()   { echo -e "${RED}[FAIL]${NC} $1"; }
 
 echo ""
 echo "================================================"
-echo "  sandboxes-logger — Pre-Release Check"
+echo "  slogx — Pre-Release Check"
 echo "================================================"
 echo ""
 
@@ -132,7 +132,7 @@ echo ""
 if [ "$QUICK" -eq 0 ]; then
     # 8. Coverage
     log_info "Checking test coverage..."
-    COV_PROFILE=$(mktemp -t sandboxes-logger-cov)
+    COV_PROFILE=$(mktemp -t slogx-cov)
     go list ./... | grep -v '/examples/' | \
         xargs go test -count=1 -coverprofile="$COV_PROFILE" -covermode=atomic 2>/dev/null
     COVERAGE=$(go tool cover -func="$COV_PROFILE" | tail -1 | awk '{print $3}' | sed 's/%//')
