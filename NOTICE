@@ -1,0 +1,17 @@
+This repository contains software derived from quarshell-slogx, archived in the
+rheic/quarshell repository at archive-sources/quarshell-slogx, commit
+ac476dcc0e89b4efc9c3b2b484054026d9d32275.
+
+Original copyright notice:
+
+  Copyright (c) 2026 cautem
+
+The original sources are licensed under the MIT License. The LICENSE file in this
+repository retains that copyright notice and license text.
+
+Changes made for this repository: module path renamed to
+github.com/rheic/sandboxes-logger, Go version updated to 1.27.4, imports and
+examples updated, documentation and CI adapted, the limits of the imported
+masking behavior documented, the stack-trace internal-frame filter updated to
+the new module path, and the FromContext fallback aligned with the documented
+FatalContext exit contract. Masking and logging semantics are otherwise unchanged.

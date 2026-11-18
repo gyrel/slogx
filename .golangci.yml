@@ -1,0 +1,97 @@
+# GolangCI-Lint v2 configuration for sandboxes-logger
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - errorlint
+    - gosec
+    - nilnil
+    - nilerr
+    - ineffassign
+    - bodyclose
+    - makezero
+    - gocyclo
+    - cyclop
+    - gocognit
+    - funlen
+    - maintidx
+    - nestif
+    - misspell
+    - whitespace
+    - unconvert
+    - unparam
+    - revive
+    - prealloc
+    - goconst
+    - gocritic
+    - goprintffuncname
+    - nolintlint
+    - nakedret
+    - dupl
+    - dogsled
+    - durationcheck
+
+  settings:
+    gocyclo:
+      min-complexity: 15
+    cyclop:
+      max-complexity: 15
+    gocognit:
+      min-complexity: 20
+    funlen:
+      lines: 100
+      statements: 50
+    nestif:
+      min-complexity: 4
+    misspell:
+      locale: US
+    revive:
+      rules:
+        - name: var-naming
+        - name: error-return
+        - name: error-naming
+        - name: exported
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - cyclop
+          - gocognit
+          - funlen
+          - maintidx
+          - nestif
+          - errcheck
+          - gosec
+          - dupl
+    paths:
+      - examples/
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/rheic/sandboxes-logger

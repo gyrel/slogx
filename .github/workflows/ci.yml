@@ -1,0 +1,146 @@
+name: CI
+
+# CI baseline for sandboxes-logger:
+# - Go version pinned to 1.27.4 with GOTOOLCHAIN=local
+# - Tests run with the race detector
+# - Examples are built and executed but excluded from coverage
+# - Lint, formatting, module hygiene, and vulnerability checks are required
+# - Coverage is uploaded via Codecov OIDC when available
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  CGO_ENABLED: "1"
+  GOTOOLCHAIN: local
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+
+      - run: go mod download
+      - run: go mod verify
+      - run: go mod tidy -diff
+      - run: go build ./...
+
+      - name: Build examples
+        run: |
+          for d in examples/*/; do
+            echo "==> building $d"
+            go build -o /dev/null "./$d"
+          done
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+
+      - run: go mod download
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Tests with race detector
+        run: go test -race -count=1 ./...
+
+      - name: Coverage
+        run: |
+          go list ./... | grep -v '/examples/' | \
+            xargs go test -race -count=1 -coverprofile=coverage.txt -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.txt
+          name: codecov-sandboxes-logger
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+      - name: Verify configuration and run linters
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.15.0
+          verify: true
+          args: --timeout=5m
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+      - name: Check formatting
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "Unformatted files:"
+            gofmt -l .
+            echo "Run 'go fmt ./...' to fix."
+            exit 1
+          fi
+
+  examples:
+    name: Run examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+      - name: Run all examples
+        run: |
+          for d in examples/*/; do
+            echo "==> running $d"
+            go run "./$d"
+          done
+
+  vulnerability:
+    name: Vulnerability check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.4'
+          cache: true
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+      - name: Run govulncheck
+        run: govulncheck ./...
