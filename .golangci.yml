@@ -94,4 +94,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/rheic/slogx
+        - github.com/gyrel/slogx

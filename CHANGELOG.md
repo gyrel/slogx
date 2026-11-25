@@ -6,6 +6,9 @@
 
 - Add heuristic diagnostic archive scanning in `redact`.
 
+- Module path renamed `github.com/rheic/slogx` → `github.com/gyrel/slogx`; event
+  prefix `rheic.*` → `gyrel.*`; breaking, pre-1.0 alpha policy.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),

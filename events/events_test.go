@@ -23,77 +23,77 @@ func catalogCases() []struct {
 		outcomes        []Outcome
 		call            func(Outcome) (Event, error)
 	}{
-		{"rheic.daemon.start", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.daemon.start", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return DaemonStart(o, DaemonStartParams{ListenKind: "unix", ManagedVerify: "ok"})
 		}},
-		{"rheic.daemon.ready", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReady(o, DaemonReadyParams{}) }},
-		{"rheic.daemon.shutdown", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return DaemonShutdown(o, DaemonShutdownParams{}) }},
-		{"rheic.daemon.reconcile", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReconcile(o, DaemonReconcileParams{}) }},
-		{"rheic.journal.recover", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.daemon.ready", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReady(o, DaemonReadyParams{}) }},
+		{"gyrel.daemon.shutdown", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return DaemonShutdown(o, DaemonShutdownParams{}) }},
+		{"gyrel.daemon.reconcile", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReconcile(o, DaemonReconcileParams{}) }},
+		{"gyrel.journal.recover", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return JournalRecover(o, JournalRecoverParams{Finding: "MarkerMissing", Action: "LEAVE"})
 		}},
-		{"rheic.journal.commit", string(ComponentDaemon), slog.LevelDebug, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return JournalCommit(o, JournalCommitParams{}) }},
-		{"rheic.create.unwind", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return CreateUnwind(o, CreateUnwindParams{}) }},
-		{"rheic.peercred.reject", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeDenied}, func(o Outcome) (Event, error) { return PeerCredReject(o, PeerCredRejectParams{Transport: "unix"}) }},
-		{"rheic.platform.unsupported", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeUnsupported}, func(o Outcome) (Event, error) {
+		{"gyrel.journal.commit", string(ComponentDaemon), slog.LevelDebug, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return JournalCommit(o, JournalCommitParams{}) }},
+		{"gyrel.create.unwind", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return CreateUnwind(o, CreateUnwindParams{}) }},
+		{"gyrel.peercred.reject", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeDenied}, func(o Outcome) (Event, error) { return PeerCredReject(o, PeerCredRejectParams{Transport: "unix"}) }},
+		{"gyrel.platform.unsupported", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeUnsupported}, func(o Outcome) (Event, error) {
 			return PlatformUnsupported(o, PlatformUnsupportedParams{Capability: "RootlessUnsupported"})
 		}},
-		{"rheic.approval.requested", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) {
+		{"gyrel.approval.requested", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) {
 			return ApprovalRequested(o, ApprovalRequestedParams{Kind: "header_disclosure", DisclosureBoundary: "headers", Provider: "os"})
 		}},
-		{"rheic.approval.responded", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.approval.responded", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return ApprovalResponded(o, ApprovalRespondedParams{Decision: "APPROVE", Result: "ok"})
 		}},
-		{"rheic.approval.expired", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return ApprovalExpired(o, ApprovalExpiredParams{}) }},
-		{"rheic.secret.write", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretWrite(o, SecretWriteParams{VaultBackend: "keychain"}) }},
-		{"rheic.secret.substitute", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.approval.expired", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return ApprovalExpired(o, ApprovalExpiredParams{}) }},
+		{"gyrel.secret.write", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretWrite(o, SecretWriteParams{VaultBackend: "keychain"}) }},
+		{"gyrel.secret.substitute", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
 			reason := SecretSubstituteReason("")
 			if o != OutcomeOK {
 				reason = SecretSubstituteReasonInsecurescheme
 			}
 			return SecretSubstitute(o, SecretSubstituteParams{Scheme: SecretSubstituteSchemeHTTPS, Decision: SecretSubstituteDecisionSubstituted, Reason: reason})
 		}},
-		{"rheic.secret.canary", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretCanary(o, SecretCanaryParams{}) }},
-		{"rheic.kit.check", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
+		{"gyrel.secret.canary", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretCanary(o, SecretCanaryParams{}) }},
+		{"gyrel.kit.check", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
 			reason := KitCheckReason("")
 			if o != OutcomeOK {
 				reason = KitCheckReasonSourcenotallowed
 			}
 			return KitCheck(o, KitCheckParams{Decision: KitCheckDecisionAllow, Reason: reason, Mode: KitCheckModeOffline})
 		}},
-		{"rheic.mcp.register", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return MCPRegister(o, MCPRegisterParams{}) }},
-		{"rheic.mcp.attest", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeUnsupported}, func(o Outcome) (Event, error) { return MCPAttest(o, MCPAttestParams{State: "owned"}) }},
-		{"rheic.mcp.load", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return MCPLoad(o, MCPLoadParams{}) }},
-		{"rheic.mcp.unload", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return MCPUnload(o, MCPUnloadParams{}) }},
-		{"rheic.mcp.inspect", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return MCPInspect(o, MCPInspectParams{}) }},
-		{"rheic.template.save", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed, OutcomeUnsupported}, func(o Outcome) (Event, error) { return TemplateSave(o, TemplateSaveParams{}) }},
-		{"rheic.template.load", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed, OutcomeUnsupported}, func(o Outcome) (Event, error) { return TemplateLoad(o, TemplateLoadParams{}) }},
-		{"rheic.runtime.verify", string(ComponentRuntime), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return RuntimeVerify(o, RuntimeVerifyParams{Result: "ok"}) }},
-		{"rheic.runtime.launch", string(ComponentRuntime), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.mcp.register", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return MCPRegister(o, MCPRegisterParams{}) }},
+		{"gyrel.mcp.attest", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeUnsupported}, func(o Outcome) (Event, error) { return MCPAttest(o, MCPAttestParams{State: "owned"}) }},
+		{"gyrel.mcp.load", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return MCPLoad(o, MCPLoadParams{}) }},
+		{"gyrel.mcp.unload", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return MCPUnload(o, MCPUnloadParams{}) }},
+		{"gyrel.mcp.inspect", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return MCPInspect(o, MCPInspectParams{}) }},
+		{"gyrel.template.save", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed, OutcomeUnsupported}, func(o Outcome) (Event, error) { return TemplateSave(o, TemplateSaveParams{}) }},
+		{"gyrel.template.load", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed, OutcomeUnsupported}, func(o Outcome) (Event, error) { return TemplateLoad(o, TemplateLoadParams{}) }},
+		{"gyrel.runtime.verify", string(ComponentRuntime), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return RuntimeVerify(o, RuntimeVerifyParams{Result: "ok"}) }},
+		{"gyrel.runtime.launch", string(ComponentRuntime), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return RuntimeLaunch(o, RuntimeLaunchParams{Backend: "libkrun", Netdev: "gvproxy"})
 		}},
-		{"rheic.keeper.recover", string(ComponentRuntime), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return KeeperRecover(o, KeeperRecoverParams{TaskState: "running"}) }},
-		{"rheic.egress.decision", string(ComponentGateway), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
+		{"gyrel.keeper.recover", string(ComponentRuntime), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return KeeperRecover(o, KeeperRecoverParams{TaskState: "running"}) }},
+		{"gyrel.egress.decision", string(ComponentGateway), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
 			reason := EgressDecisionReason("")
 			if o != OutcomeOK {
 				reason = EgressDecisionReasonOrgdeny
 			}
 			return EgressDecision(o, EgressDecisionParams{Direction: EgressDecisionDirectionIn, Proto: EgressDecisionProtoTCP, Action: EgressDecisionActionAllow, Reason: reason})
 		}},
-		{"rheic.egress.dns", string(ComponentGateway), slog.LevelDebug, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return EgressDNS(o, EgressDNSParams{}) }},
-		{"rheic.egress.audit_failure", string(ComponentGateway), slog.LevelError, []Outcome{OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.egress.dns", string(ComponentGateway), slog.LevelDebug, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return EgressDNS(o, EgressDNSParams{}) }},
+		{"gyrel.egress.audit_failure", string(ComponentGateway), slog.LevelError, []Outcome{OutcomeFailed}, func(o Outcome) (Event, error) {
 			return EgressAuditFailure(o, EgressAuditFailureParams{ActionTaken: "deny"})
 		}},
-		{"rheic.fault.detected", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.fault.detected", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return FaultDetected(o, FaultDetectedParams{Component: ComponentDaemon, Fault: "DaemonKill", RecoveryAction: "journal_reconcile", DataLoss: "none"})
 		}},
-		{"rheic.obs.log_dropped", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeFailed}, func(o Outcome) (Event, error) {
+		{"gyrel.obs.log_dropped", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeFailed}, func(o Outcome) (Event, error) {
 			return ObsLogDropped(o, ObsLogDroppedParams{Component: ComponentDaemon})
 		}},
-		{"rheic.obs.id_rejected", string(ComponentDaemon), slog.LevelDebug, []Outcome{OutcomeDenied}, func(o Outcome) (Event, error) {
+		{"gyrel.obs.id_rejected", string(ComponentDaemon), slog.LevelDebug, []Outcome{OutcomeDenied}, func(o Outcome) (Event, error) {
 			return ObsIDRejected(o, ObsIDRejectedParams{Component: ComponentDaemon, Field: "op_id", Rule: "canonical_length", Regenerated: true})
 		}},
-		{"rheic.diagnose.build", "cli", slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return DiagnoseBuild(o, DiagnoseBuildParams{Result: "ok"}) }},
+		{"gyrel.diagnose.build", "cli", slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return DiagnoseBuild(o, DiagnoseBuildParams{Result: "ok"}) }},
 	}
 }
 
@@ -139,7 +139,7 @@ func TestConstructorsAndDocs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rows := regexp.MustCompile(`(?m)^\| (rheic\.[a-z0-9_.]+) \|`).FindAllStringSubmatch(string(doc), -1)
+	rows := regexp.MustCompile(`(?m)^\| (gyrel\.[a-z0-9_.]+) \|`).FindAllStringSubmatch(string(doc), -1)
 	docs := map[string]int{}
 	for _, row := range rows {
 		docs[row[1]]++
@@ -172,7 +172,7 @@ func TestConstructorsAndDocs(t *testing.T) {
 					t.Fatalf("%q: %v", outcome, err)
 				}
 				wantLevel := tc.level
-				if tc.name == "rheic.secret.substitute" && outcome != OutcomeOK {
+				if tc.name == "gyrel.secret.substitute" && outcome != OutcomeOK {
 					wantLevel = slog.LevelWarn
 				}
 				if event.Name() != tc.name || event.Level() != wantLevel {
@@ -276,7 +276,7 @@ func FuzzCanonicalEventName(f *testing.F) {
 	for _, tc := range catalogCases() {
 		f.Add(tc.name)
 	}
-	f.Add("rheic.unknown")
+	f.Add("gyrel.unknown")
 	f.Fuzz(func(t *testing.T, name string) {
 		got := canonicalEventName(name)
 		found := false

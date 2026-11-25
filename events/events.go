@@ -129,7 +129,7 @@ const (
 	DaemonStartManagedVerifyRefused DaemonStartManagedVerify = "refused"
 )
 
-// DaemonStartParams contains the catalog fields for rheic.daemon.start.
+// DaemonStartParams contains the catalog fields for gyrel.daemon.start.
 type DaemonStartParams struct {
 	ListenKind          DaemonStartListenKind
 	SocketPathHash      Hash
@@ -138,7 +138,7 @@ type DaemonStartParams struct {
 	ManagedVerify       DaemonStartManagedVerify
 }
 
-// DaemonStart constructs rheic.daemon.start; invalid enum values are rejected.
+// DaemonStart constructs gyrel.daemon.start; invalid enum values are rejected.
 func DaemonStart(outcome Outcome, p DaemonStartParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") ||
 		!valid(string(p.ListenKind), "unix", "pipe") ||
@@ -146,7 +146,7 @@ func DaemonStart(outcome Outcome, p DaemonStartParams) (Event, error) {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.daemon.start", "daemon", outcome, level,
+	return build("gyrel.daemon.start", "daemon", outcome, level,
 		slog.String("listen_kind", string(p.ListenKind)),
 		slog.String("socket_path_hash", string(p.SocketPathHash)),
 		slog.Uint64("uid", p.UID),
@@ -155,45 +155,45 @@ func DaemonStart(outcome Outcome, p DaemonStartParams) (Event, error) {
 	), nil
 }
 
-// DaemonReadyParams contains the catalog fields for rheic.daemon.ready.
+// DaemonReadyParams contains the catalog fields for gyrel.daemon.ready.
 type DaemonReadyParams struct {
 	StartupMs      uint64
 	RecoveredCount uint64
 }
 
-// DaemonReady constructs rheic.daemon.ready; invalid enum values are rejected.
+// DaemonReady constructs gyrel.daemon.ready; invalid enum values are rejected.
 func DaemonReady(outcome Outcome, p DaemonReadyParams) (Event, error) {
 	if !valid(string(outcome), "ok") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.daemon.ready", "daemon", outcome, level,
+	return build("gyrel.daemon.ready", "daemon", outcome, level,
 		slog.Uint64("startup_ms", p.StartupMs),
 		slog.Uint64("recovered_count", p.RecoveredCount),
 	), nil
 }
 
-// DaemonShutdownParams contains the catalog fields for rheic.daemon.shutdown.
+// DaemonShutdownParams contains the catalog fields for gyrel.daemon.shutdown.
 type DaemonShutdownParams struct {
 	Signal      ID
 	InflightOps uint64
 	FlushOk     bool
 }
 
-// DaemonShutdown constructs rheic.daemon.shutdown; invalid enum values are rejected.
+// DaemonShutdown constructs gyrel.daemon.shutdown; invalid enum values are rejected.
 func DaemonShutdown(outcome Outcome, p DaemonShutdownParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.daemon.shutdown", "daemon", outcome, level,
+	return build("gyrel.daemon.shutdown", "daemon", outcome, level,
 		slog.String("signal", string(p.Signal)),
 		slog.Uint64("inflight_ops", p.InflightOps),
 		slog.Bool("flush_ok", p.FlushOk),
 	), nil
 }
 
-// DaemonReconcileParams contains the catalog fields for rheic.daemon.reconcile.
+// DaemonReconcileParams contains the catalog fields for gyrel.daemon.reconcile.
 type DaemonReconcileParams struct {
 	Scanned            uint64
 	Adopted            uint64
@@ -201,13 +201,13 @@ type DaemonReconcileParams struct {
 	GenerationMismatch uint64
 }
 
-// DaemonReconcile constructs rheic.daemon.reconcile; invalid enum values are rejected.
+// DaemonReconcile constructs gyrel.daemon.reconcile; invalid enum values are rejected.
 func DaemonReconcile(outcome Outcome, p DaemonReconcileParams) (Event, error) {
 	if !valid(string(outcome), "ok") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.daemon.reconcile", "daemon", outcome, level,
+	return build("gyrel.daemon.reconcile", "daemon", outcome, level,
 		slog.Uint64("scanned", p.Scanned),
 		slog.Uint64("adopted", p.Adopted),
 		slog.Uint64("left_alone", p.LeftAlone),
@@ -238,7 +238,7 @@ const (
 	JournalRecoverActionAdopt  JournalRecoverAction = "ADOPT"
 )
 
-// JournalRecoverParams contains the catalog fields for rheic.journal.recover.
+// JournalRecoverParams contains the catalog fields for gyrel.journal.recover.
 type JournalRecoverParams struct {
 	Finding      JournalRecoverFinding
 	Action       JournalRecoverAction
@@ -246,7 +246,7 @@ type JournalRecoverParams struct {
 	PathHash     Hash
 }
 
-// JournalRecover constructs rheic.journal.recover; invalid enum values are rejected.
+// JournalRecover constructs gyrel.journal.recover; invalid enum values are rejected.
 func JournalRecover(outcome Outcome, p JournalRecoverParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Finding), "MarkerMissing", "MarkerMismatch", "SymlinkRefused", "OutsideRoot", "ParseFailed", "TempOrphan", "ForeignResource", "UnsupportedOwnership") ||
@@ -254,7 +254,7 @@ func JournalRecover(outcome Outcome, p JournalRecoverParams) (Event, error) {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.journal.recover", "daemon", outcome, level,
+	return build("gyrel.journal.recover", "daemon", outcome, level,
 		slog.String("finding", string(p.Finding)),
 		slog.String("action", string(p.Action)),
 		slog.String("resource_kind", string(p.ResourceKind)),
@@ -262,27 +262,27 @@ func JournalRecover(outcome Outcome, p JournalRecoverParams) (Event, error) {
 	), nil
 }
 
-// JournalCommitParams contains the catalog fields for rheic.journal.commit.
+// JournalCommitParams contains the catalog fields for gyrel.journal.commit.
 type JournalCommitParams struct {
 	JournalID ID
 	FsyncOk   bool
 	RenameOk  bool
 }
 
-// JournalCommit constructs rheic.journal.commit; invalid enum values are rejected.
+// JournalCommit constructs gyrel.journal.commit; invalid enum values are rejected.
 func JournalCommit(outcome Outcome, p JournalCommitParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelDebug
-	return build("rheic.journal.commit", "daemon", outcome, level,
+	return build("gyrel.journal.commit", "daemon", outcome, level,
 		slog.String("journal_id", string(p.JournalID)),
 		slog.Bool("fsync_ok", p.FsyncOk),
 		slog.Bool("rename_ok", p.RenameOk),
 	), nil
 }
 
-// CreateUnwindParams contains the catalog fields for rheic.create.unwind.
+// CreateUnwindParams contains the catalog fields for gyrel.create.unwind.
 type CreateUnwindParams struct {
 	Stage          ID
 	CleanupOk      bool
@@ -290,13 +290,13 @@ type CreateUnwindParams struct {
 	Reason         ID
 }
 
-// CreateUnwind constructs rheic.create.unwind; invalid enum values are rejected.
+// CreateUnwind constructs gyrel.create.unwind; invalid enum values are rejected.
 func CreateUnwind(outcome Outcome, p CreateUnwindParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.create.unwind", "daemon", outcome, level,
+	return build("gyrel.create.unwind", "daemon", outcome, level,
 		slog.String("stage", string(p.Stage)),
 		slog.Bool("cleanup_ok", p.CleanupOk),
 		slog.Bool("network_stopped", p.NetworkStopped),
@@ -312,7 +312,7 @@ const (
 	PeerCredRejectTransportPipe PeerCredRejectTransport = "pipe"
 )
 
-// PeerCredRejectParams contains the catalog fields for rheic.peercred.reject.
+// PeerCredRejectParams contains the catalog fields for gyrel.peercred.reject.
 type PeerCredRejectParams struct {
 	PeerUID      uint64
 	PeerSIDHash  Hash
@@ -320,7 +320,7 @@ type PeerCredRejectParams struct {
 	Transport    PeerCredRejectTransport
 }
 
-// PeerCredReject constructs rheic.peercred.reject; invalid enum values are rejected.
+// PeerCredReject constructs gyrel.peercred.reject; invalid enum values are rejected.
 func PeerCredReject(outcome Outcome, p PeerCredRejectParams) (Event, error) {
 	if !valid(string(outcome), "denied") ||
 		!valid(string(p.Transport), "unix", "pipe") ||
@@ -346,20 +346,20 @@ const (
 	PlatformUnsupportedCapabilityApprovalprovidermissing    PlatformUnsupportedCapability = "ApprovalProviderMissing"
 )
 
-// PlatformUnsupportedParams contains the catalog fields for rheic.platform.unsupported.
+// PlatformUnsupportedParams contains the catalog fields for gyrel.platform.unsupported.
 type PlatformUnsupportedParams struct {
 	Capability PlatformUnsupportedCapability
 	HintID     ID
 }
 
-// PlatformUnsupported constructs rheic.platform.unsupported; invalid enum values are rejected.
+// PlatformUnsupported constructs gyrel.platform.unsupported; invalid enum values are rejected.
 func PlatformUnsupported(outcome Outcome, p PlatformUnsupportedParams) (Event, error) {
 	if !valid(string(outcome), "unsupported") ||
 		!valid(string(p.Capability), "RootlessUnsupported", "WorkspaceDirectUnsupported", "WHPUnavailable", "VaultHeadless", "LoopDeviceUnavailable", "ApprovalProviderMissing") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.platform.unsupported", "daemon", outcome, level,
+	return build("gyrel.platform.unsupported", "daemon", outcome, level,
 		slog.String("capability", string(p.Capability)),
 		slog.String("hint_id", string(p.HintID)),
 	), nil
@@ -392,7 +392,7 @@ const (
 	ApprovalRequestedProviderNone ApprovalRequestedProvider = "none"
 )
 
-// ApprovalRequestedParams contains the catalog fields for rheic.approval.requested.
+// ApprovalRequestedParams contains the catalog fields for gyrel.approval.requested.
 type ApprovalRequestedParams struct {
 	ApprovalID         ID
 	Kind               ApprovalRequestedKind
@@ -400,7 +400,7 @@ type ApprovalRequestedParams struct {
 	Provider           ApprovalRequestedProvider
 }
 
-// ApprovalRequested constructs rheic.approval.requested; invalid enum values are rejected.
+// ApprovalRequested constructs gyrel.approval.requested; invalid enum values are rejected.
 func ApprovalRequested(outcome Outcome, p ApprovalRequestedParams) (Event, error) {
 	if !valid(string(outcome), "ok") ||
 		!valid(string(p.Kind), "header_disclosure", "vault_ref", "mcp_register", "host_command", "other") ||
@@ -409,7 +409,7 @@ func ApprovalRequested(outcome Outcome, p ApprovalRequestedParams) (Event, error
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.approval.requested", "daemon", outcome, level,
+	return build("gyrel.approval.requested", "daemon", outcome, level,
 		slog.String("approval_id", string(p.ApprovalID)),
 		slog.String("kind", string(p.Kind)),
 		slog.String("disclosure_boundary", string(p.DisclosureBoundary)),
@@ -434,14 +434,14 @@ const (
 	ApprovalRespondedResultFailedPrecondition ApprovalRespondedResult = "FAILED_PRECONDITION"
 )
 
-// ApprovalRespondedParams contains the catalog fields for rheic.approval.responded.
+// ApprovalRespondedParams contains the catalog fields for gyrel.approval.responded.
 type ApprovalRespondedParams struct {
 	ApprovalID ID
 	Decision   ApprovalRespondedDecision
 	Result     ApprovalRespondedResult
 }
 
-// ApprovalResponded constructs rheic.approval.responded; invalid enum values are rejected.
+// ApprovalResponded constructs gyrel.approval.responded; invalid enum values are rejected.
 func ApprovalResponded(outcome Outcome, p ApprovalRespondedParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Decision), "APPROVE", "EXACT", "DENY") ||
@@ -449,26 +449,26 @@ func ApprovalResponded(outcome Outcome, p ApprovalRespondedParams) (Event, error
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.approval.responded", "daemon", outcome, level,
+	return build("gyrel.approval.responded", "daemon", outcome, level,
 		slog.String("approval_id", string(p.ApprovalID)),
 		slog.String("decision", string(p.Decision)),
 		slog.String("result", string(p.Result)),
 	), nil
 }
 
-// ApprovalExpiredParams contains the catalog fields for rheic.approval.expired.
+// ApprovalExpiredParams contains the catalog fields for gyrel.approval.expired.
 type ApprovalExpiredParams struct {
 	ApprovalID ID
 	TTLMs      uint64
 }
 
-// ApprovalExpired constructs rheic.approval.expired; invalid enum values are rejected.
+// ApprovalExpired constructs gyrel.approval.expired; invalid enum values are rejected.
 func ApprovalExpired(outcome Outcome, p ApprovalExpiredParams) (Event, error) {
 	if !valid(string(outcome), "ok") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.approval.expired", "daemon", outcome, level,
+	return build("gyrel.approval.expired", "daemon", outcome, level,
 		slog.String("approval_id", string(p.ApprovalID)),
 		slog.Uint64("ttl_ms", p.TTLMs),
 	), nil
@@ -483,21 +483,21 @@ const (
 	SecretWriteVaultBackendSecretservice SecretWriteVaultBackend = "secretservice"
 )
 
-// SecretWriteParams contains the catalog fields for rheic.secret.write.
+// SecretWriteParams contains the catalog fields for gyrel.secret.write.
 type SecretWriteParams struct {
 	SecretRefID       ID
 	VaultBackend      SecretWriteVaultBackend
 	PlaceholderIssued bool
 }
 
-// SecretWrite constructs rheic.secret.write; invalid enum values are rejected.
+// SecretWrite constructs gyrel.secret.write; invalid enum values are rejected.
 func SecretWrite(outcome Outcome, p SecretWriteParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") ||
 		!valid(string(p.VaultBackend), "keychain", "credman", "secretservice") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.secret.write", "daemon", outcome, level,
+	return build("gyrel.secret.write", "daemon", outcome, level,
 		slog.String("secret_ref_id", string(p.SecretRefID)),
 		slog.String("vault_backend", string(p.VaultBackend)),
 		slog.Bool("placeholder_issued", p.PlaceholderIssued),
@@ -529,7 +529,7 @@ const (
 	SecretSubstituteReasonRefmissing     SecretSubstituteReason = "RefMissing"
 )
 
-// SecretSubstituteParams contains the catalog fields for rheic.secret.substitute.
+// SecretSubstituteParams contains the catalog fields for gyrel.secret.substitute.
 type SecretSubstituteParams struct {
 	SecretRefID ID
 	Host        Host
@@ -550,7 +550,7 @@ func reasonFor(outcome Outcome, reason string, choices ...string) (slog.Attr, bo
 	return slog.String("reason", reason), true
 }
 
-// SecretSubstitute constructs rheic.secret.substitute; invalid enum values are rejected.
+// SecretSubstitute constructs gyrel.secret.substitute; invalid enum values are rejected.
 func SecretSubstitute(outcome Outcome, p SecretSubstituteParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Scheme), "https") ||
@@ -574,16 +574,16 @@ func SecretSubstitute(outcome Outcome, p SecretSubstituteParams) (Event, error) 
 	if reason.Key != "" {
 		attrs = append(attrs, reason)
 	}
-	return build("rheic.secret.substitute", "daemon", outcome, level, attrs...), nil
+	return build("gyrel.secret.substitute", "daemon", outcome, level, attrs...), nil
 }
 
-// SecretCanaryParams contains the catalog fields for rheic.secret.canary.
+// SecretCanaryParams contains the catalog fields for gyrel.secret.canary.
 type SecretCanaryParams struct {
 	ScannedStores uint64
 	Hits          uint64
 }
 
-// SecretCanary constructs rheic.secret.canary; invalid enum values are rejected.
+// SecretCanary constructs gyrel.secret.canary; invalid enum values are rejected.
 func SecretCanary(outcome Outcome, p SecretCanaryParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") {
 		return Event{}, errInvalid
@@ -592,7 +592,7 @@ func SecretCanary(outcome Outcome, p SecretCanaryParams) (Event, error) {
 	if p.Hits > 0 {
 		level = slog.LevelError
 	}
-	return build("rheic.secret.canary", "daemon", outcome, level,
+	return build("gyrel.secret.canary", "daemon", outcome, level,
 		slog.Uint64("scanned_stores", p.ScannedStores),
 		slog.Uint64("hits", p.Hits),
 	), nil
@@ -626,7 +626,7 @@ const (
 	KitCheckModeDaemonChecked KitCheckMode = "daemon-checked"
 )
 
-// KitCheckParams contains the catalog fields for rheic.kit.check.
+// KitCheckParams contains the catalog fields for gyrel.kit.check.
 type KitCheckParams struct {
 	KitRef             ID
 	Source             ID
@@ -638,7 +638,7 @@ type KitCheckParams struct {
 	Mode               KitCheckMode
 }
 
-// KitCheck constructs rheic.kit.check; invalid enum values are rejected.
+// KitCheck constructs gyrel.kit.check; invalid enum values are rejected.
 func KitCheck(outcome Outcome, p KitCheckParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") ||
 		!valid(string(p.Decision), "allow", "deny") ||
@@ -662,23 +662,23 @@ func KitCheck(outcome Outcome, p KitCheckParams) (Event, error) {
 		attrs = append(attrs, reason)
 	}
 	attrs = append(attrs, slog.String("mode", string(p.Mode)))
-	return build("rheic.kit.check", "daemon", outcome, level, attrs...), nil
+	return build("gyrel.kit.check", "daemon", outcome, level, attrs...), nil
 }
 
-// MCPRegisterParams contains the catalog fields for rheic.mcp.register.
+// MCPRegisterParams contains the catalog fields for gyrel.mcp.register.
 type MCPRegisterParams struct {
 	ServerIDHash    Hash
 	ChallengeIssued bool
 	Stored          bool
 }
 
-// MCPRegister constructs rheic.mcp.register; invalid enum values are rejected.
+// MCPRegister constructs gyrel.mcp.register; invalid enum values are rejected.
 func MCPRegister(outcome Outcome, p MCPRegisterParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.mcp.register", "daemon", outcome, level,
+	return build("gyrel.mcp.register", "daemon", outcome, level,
 		slog.String("server_id_hash", string(p.ServerIDHash)),
 		slog.Bool("challenge_issued", p.ChallengeIssued),
 		slog.Bool("stored", p.Stored),
@@ -694,82 +694,82 @@ const (
 	MCPAttestStateForeign MCPAttestState = "foreign"
 )
 
-// MCPAttestParams contains the catalog fields for rheic.mcp.attest.
+// MCPAttestParams contains the catalog fields for gyrel.mcp.attest.
 type MCPAttestParams struct {
 	ServerIDHash     Hash
 	State            MCPAttestState
 	RegistryIncluded bool
 }
 
-// MCPAttest constructs rheic.mcp.attest; invalid enum values are rejected.
+// MCPAttest constructs gyrel.mcp.attest; invalid enum values are rejected.
 func MCPAttest(outcome Outcome, p MCPAttestParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "unsupported") ||
 		!valid(string(p.State), "owned", "absent", "foreign") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.mcp.attest", "daemon", outcome, level,
+	return build("gyrel.mcp.attest", "daemon", outcome, level,
 		slog.String("server_id_hash", string(p.ServerIDHash)),
 		slog.String("state", string(p.State)),
 		slog.Bool("registry_included", p.RegistryIncluded),
 	), nil
 }
 
-// MCPLoadParams contains the catalog fields for rheic.mcp.load.
+// MCPLoadParams contains the catalog fields for gyrel.mcp.load.
 type MCPLoadParams struct {
 	ServerIDHash Hash
 	ToolsCount   uint64
 	ApprovalID   ID
 }
 
-// MCPLoad constructs rheic.mcp.load; invalid enum values are rejected.
+// MCPLoad constructs gyrel.mcp.load; invalid enum values are rejected.
 func MCPLoad(outcome Outcome, p MCPLoadParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.mcp.load", "daemon", outcome, level,
+	return build("gyrel.mcp.load", "daemon", outcome, level,
 		slog.String("server_id_hash", string(p.ServerIDHash)),
 		slog.Uint64("tools_count", p.ToolsCount),
 		slog.String("approval_id", string(p.ApprovalID)),
 	), nil
 }
 
-// MCPUnloadParams contains the catalog fields for rheic.mcp.unload.
+// MCPUnloadParams contains the catalog fields for gyrel.mcp.unload.
 type MCPUnloadParams struct {
 	ServerIDHash Hash
 }
 
-// MCPUnload constructs rheic.mcp.unload; invalid enum values are rejected.
+// MCPUnload constructs gyrel.mcp.unload; invalid enum values are rejected.
 func MCPUnload(outcome Outcome, p MCPUnloadParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.mcp.unload", "daemon", outcome, level,
+	return build("gyrel.mcp.unload", "daemon", outcome, level,
 		slog.String("server_id_hash", string(p.ServerIDHash)),
 	), nil
 }
 
-// MCPInspectParams contains the catalog fields for rheic.mcp.inspect.
+// MCPInspectParams contains the catalog fields for gyrel.mcp.inspect.
 type MCPInspectParams struct {
 	ServerIDHash Hash
 	ToolsCount   uint64
 }
 
-// MCPInspect constructs rheic.mcp.inspect; invalid enum values are rejected.
+// MCPInspect constructs gyrel.mcp.inspect; invalid enum values are rejected.
 func MCPInspect(outcome Outcome, p MCPInspectParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.mcp.inspect", "daemon", outcome, level,
+	return build("gyrel.mcp.inspect", "daemon", outcome, level,
 		slog.String("server_id_hash", string(p.ServerIDHash)),
 		slog.Uint64("tools_count", p.ToolsCount),
 	), nil
 }
 
-// TemplateSaveParams contains the catalog fields for rheic.template.save.
+// TemplateSaveParams contains the catalog fields for gyrel.template.save.
 type TemplateSaveParams struct {
 	TemplateID            ID
 	Layers                uint64
@@ -781,13 +781,13 @@ type TemplateSaveParams struct {
 	Digest                Hash
 }
 
-// TemplateSave constructs rheic.template.save; invalid enum values are rejected.
+// TemplateSave constructs gyrel.template.save; invalid enum values are rejected.
 func TemplateSave(outcome Outcome, p TemplateSaveParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed", "unsupported") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.template.save", "daemon", outcome, level,
+	return build("gyrel.template.save", "daemon", outcome, level,
 		slog.String("template_id", string(p.TemplateID)),
 		slog.Uint64("layers", p.Layers),
 		slog.Uint64("whiteouts", p.Whiteouts),
@@ -799,7 +799,7 @@ func TemplateSave(outcome Outcome, p TemplateSaveParams) (Event, error) {
 	), nil
 }
 
-// TemplateLoadParams contains the catalog fields for rheic.template.load.
+// TemplateLoadParams contains the catalog fields for gyrel.template.load.
 type TemplateLoadParams struct {
 	TemplateID ID
 	Layers     uint64
@@ -807,13 +807,13 @@ type TemplateLoadParams struct {
 	Digest     Hash
 }
 
-// TemplateLoad constructs rheic.template.load; invalid enum values are rejected.
+// TemplateLoad constructs gyrel.template.load; invalid enum values are rejected.
 func TemplateLoad(outcome Outcome, p TemplateLoadParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed", "unsupported") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.template.load", "daemon", outcome, level,
+	return build("gyrel.template.load", "daemon", outcome, level,
 		slog.String("template_id", string(p.TemplateID)),
 		slog.Uint64("layers", p.Layers),
 		slog.Uint64("bytes", p.Bytes),
@@ -830,7 +830,7 @@ const (
 	RuntimeVerifyResultMissing  RuntimeVerifyResult = "missing"
 )
 
-// RuntimeVerifyParams contains the catalog fields for rheic.runtime.verify.
+// RuntimeVerifyParams contains the catalog fields for gyrel.runtime.verify.
 type RuntimeVerifyParams struct {
 	Artifact       ID
 	ExpectedDigest Hash
@@ -838,14 +838,14 @@ type RuntimeVerifyParams struct {
 	Result         RuntimeVerifyResult
 }
 
-// RuntimeVerify constructs rheic.runtime.verify; invalid enum values are rejected.
+// RuntimeVerify constructs gyrel.runtime.verify; invalid enum values are rejected.
 func RuntimeVerify(outcome Outcome, p RuntimeVerifyParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Result), "ok", "mismatch", "missing") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.runtime.verify", "runtime", outcome, level,
+	return build("gyrel.runtime.verify", "runtime", outcome, level,
 		slog.String("artifact", string(p.Artifact)),
 		slog.String("expected_digest", string(p.ExpectedDigest)),
 		slog.String("actual_digest", string(p.ActualDigest)),
@@ -868,7 +868,7 @@ const (
 	RuntimeLaunchNetdevGvproxy RuntimeLaunchNetdev = "gvproxy"
 )
 
-// RuntimeLaunchParams contains the catalog fields for rheic.runtime.launch.
+// RuntimeLaunchParams contains the catalog fields for gyrel.runtime.launch.
 type RuntimeLaunchParams struct {
 	Backend      RuntimeLaunchBackend
 	KernelDigest Hash
@@ -877,7 +877,7 @@ type RuntimeLaunchParams struct {
 	BootMs       uint64
 }
 
-// RuntimeLaunch constructs rheic.runtime.launch; invalid enum values are rejected.
+// RuntimeLaunch constructs gyrel.runtime.launch; invalid enum values are rejected.
 func RuntimeLaunch(outcome Outcome, p RuntimeLaunchParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") ||
 		!valid(string(p.Backend), "libkrun", "qemu-whpx") ||
@@ -885,7 +885,7 @@ func RuntimeLaunch(outcome Outcome, p RuntimeLaunchParams) (Event, error) {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.runtime.launch", "runtime", outcome, level,
+	return build("gyrel.runtime.launch", "runtime", outcome, level,
 		slog.String("backend", string(p.Backend)),
 		slog.String("kernel_digest", string(p.KernelDigest)),
 		slog.String("rootfs_digest", string(p.RootfsDigest)),
@@ -903,7 +903,7 @@ const (
 	KeeperRecoverTaskStateUnknown KeeperRecoverTaskState = "unknown"
 )
 
-// KeeperRecoverParams contains the catalog fields for rheic.keeper.recover.
+// KeeperRecoverParams contains the catalog fields for gyrel.keeper.recover.
 type KeeperRecoverParams struct {
 	ChildPID      uint64
 	SocketRepoint bool
@@ -911,14 +911,14 @@ type KeeperRecoverParams struct {
 	TaskState     KeeperRecoverTaskState
 }
 
-// KeeperRecover constructs rheic.keeper.recover; invalid enum values are rejected.
+// KeeperRecover constructs gyrel.keeper.recover; invalid enum values are rejected.
 func KeeperRecover(outcome Outcome, p KeeperRecoverParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") ||
 		!valid(string(p.TaskState), "running", "stopped", "unknown") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.keeper.recover", "runtime", outcome, level,
+	return build("gyrel.keeper.recover", "runtime", outcome, level,
 		slog.Uint64("child_pid", p.ChildPID),
 		slog.Bool("socket_repoint", p.SocketRepoint),
 		slog.Bool("stale_refused", p.StaleRefused),
@@ -964,7 +964,7 @@ const (
 	EgressDecisionReasonAuditwritefailed  EgressDecisionReason = "AuditWriteFailed"
 )
 
-// EgressDecisionParams contains the catalog fields for rheic.egress.decision.
+// EgressDecisionParams contains the catalog fields for gyrel.egress.decision.
 type EgressDecisionParams struct {
 	Direction        EgressDecisionDirection
 	Host             Host
@@ -976,7 +976,7 @@ type EgressDecisionParams struct {
 	L7Phase          uint64
 }
 
-// EgressDecision constructs rheic.egress.decision; invalid enum values are rejected.
+// EgressDecision constructs gyrel.egress.decision; invalid enum values are rejected.
 func EgressDecision(outcome Outcome, p EgressDecisionParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") ||
 		!valid(string(p.Direction), "in", "out") ||
@@ -1006,10 +1006,10 @@ func EgressDecision(outcome Outcome, p EgressDecisionParams) (Event, error) {
 		slog.Uint64("policy_generation", p.PolicyGeneration),
 		slog.Uint64("l7_phase", p.L7Phase),
 	)
-	return build("rheic.egress.decision", "gateway", outcome, level, attrs...), nil
+	return build("gyrel.egress.decision", "gateway", outcome, level, attrs...), nil
 }
 
-// EgressDNSParams contains the catalog fields for rheic.egress.dns.
+// EgressDNSParams contains the catalog fields for gyrel.egress.dns.
 type EgressDNSParams struct {
 	Qname           Host
 	ResolvedCount   uint64
@@ -1017,13 +1017,13 @@ type EgressDNSParams struct {
 	RebindSuspected bool
 }
 
-// EgressDNS constructs rheic.egress.dns; invalid enum values are rejected.
+// EgressDNS constructs gyrel.egress.dns; invalid enum values are rejected.
 func EgressDNS(outcome Outcome, p EgressDNSParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelDebug
-	return build("rheic.egress.dns", "gateway", outcome, level,
+	return build("gyrel.egress.dns", "gateway", outcome, level,
 		slog.String("qname", string(p.Qname)),
 		slog.Uint64("resolved_count", p.ResolvedCount),
 		slog.Uint64("ttl_ms", p.TTLMs),
@@ -1038,20 +1038,20 @@ const (
 	EgressAuditFailureActionTakenDeny EgressAuditFailureActionTaken = "deny"
 )
 
-// EgressAuditFailureParams contains the catalog fields for rheic.egress.audit_failure.
+// EgressAuditFailureParams contains the catalog fields for gyrel.egress.audit_failure.
 type EgressAuditFailureParams struct {
 	Sink        ID
 	ActionTaken EgressAuditFailureActionTaken
 }
 
-// EgressAuditFailure constructs rheic.egress.audit_failure; invalid enum values are rejected.
+// EgressAuditFailure constructs gyrel.egress.audit_failure; invalid enum values are rejected.
 func EgressAuditFailure(outcome Outcome, p EgressAuditFailureParams) (Event, error) {
 	if !valid(string(outcome), "failed") ||
 		!valid(string(p.ActionTaken), "deny") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelError
-	return build("rheic.egress.audit_failure", "gateway", outcome, level,
+	return build("gyrel.egress.audit_failure", "gateway", outcome, level,
 		slog.String("sink", string(p.Sink)),
 		slog.String("action_taken", string(p.ActionTaken)),
 	), nil
@@ -1093,7 +1093,7 @@ const (
 	FaultDetectedDataLossPossible FaultDetectedDataLoss = "possible"
 )
 
-// FaultDetectedParams contains the catalog fields for rheic.fault.detected.
+// FaultDetectedParams contains the catalog fields for gyrel.fault.detected.
 type FaultDetectedParams struct {
 	Component      Component
 	Fault          FaultDetectedFault
@@ -1101,7 +1101,7 @@ type FaultDetectedParams struct {
 	DataLoss       FaultDetectedDataLoss
 }
 
-// FaultDetected constructs rheic.fault.detected; invalid enum values are rejected.
+// FaultDetected constructs gyrel.fault.detected; invalid enum values are rejected.
 func FaultDetected(outcome Outcome, p FaultDetectedParams) (Event, error) {
 	if !valid(string(outcome), "ok", "failed") ||
 		!valid(string(p.Component), "daemon", "runtime", "gateway", "guest", "cli") ||
@@ -1111,28 +1111,28 @@ func FaultDetected(outcome Outcome, p FaultDetectedParams) (Event, error) {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.fault.detected", string(p.Component), outcome, level,
+	return build("gyrel.fault.detected", string(p.Component), outcome, level,
 		slog.String("fault", string(p.Fault)),
 		slog.String("recovery_action", string(p.RecoveryAction)),
 		slog.String("data_loss", string(p.DataLoss)),
 	), nil
 }
 
-// ObsLogDroppedParams contains the catalog fields for rheic.obs.log_dropped.
+// ObsLogDroppedParams contains the catalog fields for gyrel.obs.log_dropped.
 type ObsLogDroppedParams struct {
 	Component    Component
 	DroppedCount uint64
 	QueueLen     uint64
 }
 
-// ObsLogDropped constructs rheic.obs.log_dropped; invalid enum values are rejected.
+// ObsLogDropped constructs gyrel.obs.log_dropped; invalid enum values are rejected.
 func ObsLogDropped(outcome Outcome, p ObsLogDroppedParams) (Event, error) {
 	if !valid(string(outcome), "failed") ||
 		!valid(string(p.Component), "daemon", "runtime", "gateway", "guest", "cli") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelWarn
-	return build("rheic.obs.log_dropped", string(p.Component), outcome, level,
+	return build("gyrel.obs.log_dropped", string(p.Component), outcome, level,
 		slog.Uint64("dropped_count", p.DroppedCount),
 		slog.Uint64("queue_len", p.QueueLen),
 	), nil
@@ -1156,7 +1156,7 @@ const (
 	ObsIDRejectedRulePrefix          ObsIDRejectedRule = "prefix"
 )
 
-// ObsIDRejectedParams contains the catalog fields for rheic.obs.id_rejected.
+// ObsIDRejectedParams contains the catalog fields for gyrel.obs.id_rejected.
 type ObsIDRejectedParams struct {
 	Component   Component
 	Field       ObsIDRejectedField
@@ -1164,7 +1164,7 @@ type ObsIDRejectedParams struct {
 	Regenerated bool
 }
 
-// ObsIDRejected constructs rheic.obs.id_rejected; invalid enum values are rejected.
+// ObsIDRejected constructs gyrel.obs.id_rejected; invalid enum values are rejected.
 func ObsIDRejected(outcome Outcome, p ObsIDRejectedParams) (Event, error) {
 	if !valid(string(outcome), "denied") ||
 		!valid(string(p.Component), "daemon", "runtime", "gateway", "guest", "cli") ||
@@ -1174,7 +1174,7 @@ func ObsIDRejected(outcome Outcome, p ObsIDRejectedParams) (Event, error) {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelDebug
-	return build("rheic.obs.id_rejected", string(p.Component), outcome, level,
+	return build("gyrel.obs.id_rejected", string(p.Component), outcome, level,
 		slog.String("field", string(p.Field)),
 		slog.String("rule", string(p.Rule)),
 		slog.Bool("regenerated", p.Regenerated),
@@ -1190,7 +1190,7 @@ const (
 	DiagnoseBuildResultError   DiagnoseBuildResult = "error"
 )
 
-// DiagnoseBuildParams contains the catalog fields for rheic.diagnose.build.
+// DiagnoseBuildParams contains the catalog fields for gyrel.diagnose.build.
 type DiagnoseBuildParams struct {
 	Files         uint64
 	Bytes         uint64
@@ -1199,14 +1199,14 @@ type DiagnoseBuildParams struct {
 	BundleSha256  Hash
 }
 
-// DiagnoseBuild constructs rheic.diagnose.build; invalid enum values are rejected.
+// DiagnoseBuild constructs gyrel.diagnose.build; invalid enum values are rejected.
 func DiagnoseBuild(outcome Outcome, p DiagnoseBuildParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Result), "ok", "refused", "error") {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
-	return build("rheic.diagnose.build", "cli", outcome, level,
+	return build("gyrel.diagnose.build", "cli", outcome, level,
 		slog.Uint64("files", p.Files),
 		slog.Uint64("bytes", p.Bytes),
 		slog.Uint64("redaction_hits", p.RedactionHits),
@@ -1221,13 +1221,13 @@ func peercred(outcome Outcome, level slog.Level, p PeerCredRejectParams, attrs .
 	} else {
 		attrs = append(attrs, slog.String("peer_sid_hash", string(p.PeerSIDHash)))
 	}
-	return build("rheic.peercred.reject", "daemon", outcome, level, attrs...)
+	return build("gyrel.peercred.reject", "daemon", outcome, level, attrs...)
 }
 
 // canonicalEventName accepts only names in the catalog.
 func canonicalEventName(name string) bool {
 	switch name {
-	case "rheic.daemon.start", "rheic.daemon.ready", "rheic.daemon.shutdown", "rheic.daemon.reconcile", "rheic.journal.recover", "rheic.journal.commit", "rheic.create.unwind", "rheic.peercred.reject", "rheic.platform.unsupported", "rheic.approval.requested", "rheic.approval.responded", "rheic.approval.expired", "rheic.secret.write", "rheic.secret.substitute", "rheic.secret.canary", "rheic.kit.check", "rheic.mcp.register", "rheic.mcp.attest", "rheic.mcp.load", "rheic.mcp.unload", "rheic.mcp.inspect", "rheic.template.save", "rheic.template.load", "rheic.runtime.verify", "rheic.runtime.launch", "rheic.keeper.recover", "rheic.egress.decision", "rheic.egress.dns", "rheic.egress.audit_failure", "rheic.fault.detected", "rheic.obs.log_dropped", "rheic.obs.id_rejected", "rheic.diagnose.build":
+	case "gyrel.daemon.start", "gyrel.daemon.ready", "gyrel.daemon.shutdown", "gyrel.daemon.reconcile", "gyrel.journal.recover", "gyrel.journal.commit", "gyrel.create.unwind", "gyrel.peercred.reject", "gyrel.platform.unsupported", "gyrel.approval.requested", "gyrel.approval.responded", "gyrel.approval.expired", "gyrel.secret.write", "gyrel.secret.substitute", "gyrel.secret.canary", "gyrel.kit.check", "gyrel.mcp.register", "gyrel.mcp.attest", "gyrel.mcp.load", "gyrel.mcp.unload", "gyrel.mcp.inspect", "gyrel.template.save", "gyrel.template.load", "gyrel.runtime.verify", "gyrel.runtime.launch", "gyrel.keeper.recover", "gyrel.egress.decision", "gyrel.egress.dns", "gyrel.egress.audit_failure", "gyrel.fault.detected", "gyrel.obs.log_dropped", "gyrel.obs.id_rejected", "gyrel.diagnose.build":
 		return true
 	default:
 		return false

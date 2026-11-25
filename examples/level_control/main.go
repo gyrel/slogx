@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/rheic/slogx"
+	"github.com/gyrel/slogx"
 )
 
 func main() {
