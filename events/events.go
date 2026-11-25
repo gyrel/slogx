@@ -538,25 +538,43 @@ type SecretSubstituteParams struct {
 	Reason      SecretSubstituteReason
 }
 
+// reasonFor validates the optional refusal reason: empty exactly on success
+// outcomes, one of the listed enum values on every denial or failure.
+func reasonFor(outcome Outcome, reason string, choices ...string) (slog.Attr, bool) {
+	if outcome == OutcomeOK {
+		return slog.Attr{}, reason == ""
+	}
+	if !valid(reason, choices...) || reason == "" {
+		return slog.Attr{}, false
+	}
+	return slog.String("reason", reason), true
+}
+
 // SecretSubstitute constructs rheic.secret.substitute; invalid enum values are rejected.
 func SecretSubstitute(outcome Outcome, p SecretSubstituteParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied", "failed") ||
 		!valid(string(p.Scheme), "https") ||
-		!valid(string(p.Decision), "substituted", "dropped_header", "refused") ||
-		!valid(string(p.Reason), "InsecureScheme", "VaultLocked", "RefMissing") {
+		!valid(string(p.Decision), "substituted", "dropped_header", "refused") {
+		return Event{}, errInvalid
+	}
+	reason, ok := reasonFor(outcome, string(p.Reason), "InsecureScheme", "VaultLocked", "RefMissing")
+	if !ok {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
 	if outcome != OutcomeOK {
 		level = slog.LevelWarn
 	}
-	return build("rheic.secret.substitute", "daemon", outcome, level,
+	attrs := []slog.Attr{
 		slog.String("secret_ref_id", string(p.SecretRefID)),
 		slog.String("host", string(p.Host)),
 		slog.String("scheme", string(p.Scheme)),
 		slog.String("decision", string(p.Decision)),
-		slog.String("reason", string(p.Reason)),
-	), nil
+	}
+	if reason.Key != "" {
+		attrs = append(attrs, reason)
+	}
+	return build("rheic.secret.substitute", "daemon", outcome, level, attrs...), nil
 }
 
 // SecretCanaryParams contains the catalog fields for rheic.secret.canary.
@@ -622,21 +640,27 @@ type KitCheckParams struct {
 func KitCheck(outcome Outcome, p KitCheckParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") ||
 		!valid(string(p.Decision), "allow", "deny") ||
-		!valid(string(p.Reason), "SourceNotAllowed", "LocalKitDisabled", "SignatureRequired", "ManagedSticky") ||
 		!valid(string(p.Mode), "offline", "daemon-checked") {
 		return Event{}, errInvalid
 	}
+	reason, ok := reasonFor(outcome, string(p.Reason), "SourceNotAllowed", "LocalKitDisabled", "SignatureRequired", "ManagedSticky")
+	if !ok {
+		return Event{}, errInvalid
+	}
 	level := slog.LevelInfo
-	return build("rheic.kit.check", "daemon", outcome, level,
+	attrs := []slog.Attr{
 		slog.String("kit_ref", string(p.KitRef)),
 		slog.String("source", string(p.Source)),
 		slog.String("allowed_sources_hash", string(p.AllowedSourcesHash)),
 		slog.Bool("allow_local", p.AllowLocal),
 		slog.Bool("require_signature", p.RequireSignature),
 		slog.String("decision", string(p.Decision)),
-		slog.String("reason", string(p.Reason)),
-		slog.String("mode", string(p.Mode)),
-	), nil
+	}
+	if reason.Key != "" {
+		attrs = append(attrs, reason)
+	}
+	attrs = append(attrs, slog.String("mode", string(p.Mode)))
+	return build("rheic.kit.check", "daemon", outcome, level, attrs...), nil
 }
 
 // MCPRegisterParams contains the catalog fields for rheic.mcp.register.
@@ -955,24 +979,32 @@ func EgressDecision(outcome Outcome, p EgressDecisionParams) (Event, error) {
 	if !valid(string(outcome), "ok", "denied") ||
 		!valid(string(p.Direction), "in", "out") ||
 		!valid(string(p.Proto), "tcp", "udp") ||
-		!valid(string(p.Action), "allow", "deny") ||
-		!valid(string(p.Reason), "OrgDeny", "PolicyDeny", "NoRule", "DNSRebind", "TTLGuard", "IPv6Unsupported", "QUICCapabilityOff", "AuditWriteFailed") {
+		!valid(string(p.Action), "allow", "deny") {
+		return Event{}, errInvalid
+	}
+	reason, ok := reasonFor(outcome, string(p.Reason), "OrgDeny", "PolicyDeny", "NoRule", "DNSRebind", "TTLGuard", "IPv6Unsupported", "QUICCapabilityOff", "AuditWriteFailed")
+	if !ok {
 		return Event{}, errInvalid
 	}
 	level := slog.LevelInfo
 	if p.Action == "deny" {
 		level = slog.LevelWarn
 	}
-	return build("rheic.egress.decision", "gateway", outcome, level,
+	attrs := []slog.Attr{
 		slog.String("direction", string(p.Direction)),
 		slog.String("host", string(p.Host)),
 		slog.Uint64("port", p.Port),
 		slog.String("proto", string(p.Proto)),
 		slog.String("action", string(p.Action)),
-		slog.String("reason", string(p.Reason)),
+	}
+	if reason.Key != "" {
+		attrs = append(attrs, reason)
+	}
+	attrs = append(attrs,
 		slog.Uint64("policy_generation", p.PolicyGeneration),
 		slog.Uint64("l7_phase", p.L7Phase),
-	), nil
+	)
+	return build("rheic.egress.decision", "gateway", outcome, level, attrs...), nil
 }
 
 // EgressDNSParams contains the catalog fields for rheic.egress.dns.

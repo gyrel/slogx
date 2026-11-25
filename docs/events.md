@@ -19,9 +19,9 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 | rheic.approval.responded | daemon | INFO | ok, denied, failed | approval_id, decision(APPROVE|EXACT|DENY), result(ok|FAILED_PRECONDITION) |
 | rheic.approval.expired | daemon | INFO | ok | approval_id, ttl_ms(count) |
 | rheic.secret.write | daemon | INFO | ok, failed | secret_ref_id, vault_backend(keychain|credman|secretservice), placeholder_issued(bool) |
-| rheic.secret.substitute | daemon | INFO (ok), WARN (denied/failed) | ok, denied, failed | secret_ref_id, host, scheme=https, decision(substituted|dropped_header|refused), reason(InsecureScheme|VaultLocked|RefMissing) |
+| rheic.secret.substitute | daemon | INFO (ok), WARN (denied/failed) | ok, denied, failed | secret_ref_id, host, scheme=https, decision(substituted|dropped_header|refused), reason(InsecureScheme|VaultLocked|RefMissing; required exactly when outcome != ok, omitted on ok) |
 | rheic.secret.canary | daemon | INFO (hits=0), ERROR (hits>0) | ok, failed | scanned_stores(count), hits(count) |
-| rheic.kit.check | daemon | INFO | ok, denied | kit_ref, source, allowed_sources_hash, allow_local(bool), require_signature(bool), decision(allow|deny), reason(SourceNotAllowed|LocalKitDisabled|SignatureRequired|ManagedSticky), mode(offline|daemon-checked) |
+| rheic.kit.check | daemon | INFO | ok, denied | kit_ref, source, allowed_sources_hash, allow_local(bool), require_signature(bool), decision(allow|deny), reason(SourceNotAllowed|LocalKitDisabled|SignatureRequired|ManagedSticky; required exactly when outcome != ok, omitted on ok), mode(offline|daemon-checked) |
 | rheic.mcp.register | daemon | INFO | ok, denied | server_id_hash, challenge_issued(bool), stored(bool) |
 | rheic.mcp.attest | daemon | INFO | ok, denied, unsupported | server_id_hash, state(owned|absent|foreign), registry_included(bool) |
 | rheic.mcp.load | daemon | INFO | ok, denied, failed | server_id_hash, tools_count(count), approval_id |
@@ -42,7 +42,7 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 
 | event | component | level | outcome | fields |
 |---|---|---|---|---|
-| rheic.egress.decision | gateway | INFO (allow), WARN (deny) | ok, denied | direction(in|out), host, port(count), proto(tcp|udp), action(allow|deny), reason(OrgDeny|PolicyDeny|NoRule|DNSRebind|TTLGuard|IPv6Unsupported|QUICCapabilityOff|AuditWriteFailed), policy_generation(count), l7_phase(count) |
+| rheic.egress.decision | gateway | INFO (allow), WARN (deny) | ok, denied | direction(in|out), host, port(count), proto(tcp|udp), action(allow|deny), reason(OrgDeny|PolicyDeny|NoRule|DNSRebind|TTLGuard|IPv6Unsupported|QUICCapabilityOff|AuditWriteFailed; required exactly when outcome != ok, omitted on ok), policy_generation(count), l7_phase(count) |
 | rheic.egress.dns | gateway | DEBUG | ok, denied | qname, resolved_count(count), ttl_ms(count), rebind_suspected(bool) |
 | rheic.egress.audit_failure | gateway | ERROR | failed | sink(string-id), action_taken(deny) |
 
@@ -77,9 +77,9 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 {"schema_version":1,"event":"rheic.approval.responded","component":"daemon","outcome":"ok","approval_id":"example-id","decision":"APPROVE","result":"ok"}
 {"schema_version":1,"event":"rheic.approval.expired","component":"daemon","outcome":"ok","approval_id":"example-id","ttl_ms":0}
 {"schema_version":1,"event":"rheic.secret.write","component":"daemon","outcome":"ok","secret_ref_id":"example-id","vault_backend":"keychain","placeholder_issued":true}
-{"schema_version":1,"event":"rheic.secret.substitute","component":"daemon","outcome":"ok","secret_ref_id":"example-id","host":"example.test","scheme":"https","decision":"substituted","reason":"InsecureScheme"}
+{"schema_version":1,"event":"rheic.secret.substitute","component":"daemon","outcome":"ok","secret_ref_id":"example-id","host":"example.test","scheme":"https","decision":"substituted"}
 {"schema_version":1,"event":"rheic.secret.canary","component":"daemon","outcome":"ok","scanned_stores":0,"hits":0}
-{"schema_version":1,"event":"rheic.kit.check","component":"daemon","outcome":"ok","kit_ref":"example-id","source":"example-id","allowed_sources_hash":"example-id","allow_local":true,"require_signature":true,"decision":"allow","reason":"SourceNotAllowed","mode":"offline"}
+{"schema_version":1,"event":"rheic.kit.check","component":"daemon","outcome":"ok","kit_ref":"example-id","source":"example-id","allowed_sources_hash":"example-id","allow_local":true,"require_signature":true,"decision":"allow","mode":"offline"}
 {"schema_version":1,"event":"rheic.mcp.register","component":"daemon","outcome":"ok","server_id_hash":"example-id","challenge_issued":true,"stored":true}
 {"schema_version":1,"event":"rheic.mcp.attest","component":"daemon","outcome":"ok","server_id_hash":"example-id","state":"owned","registry_included":true}
 {"schema_version":1,"event":"rheic.mcp.load","component":"daemon","outcome":"ok","server_id_hash":"example-id","tools_count":0,"approval_id":"example-id"}
@@ -90,7 +90,7 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 {"schema_version":1,"event":"rheic.runtime.verify","component":"runtime","outcome":"ok","artifact":"example-id","expected_digest":"example-id","actual_digest":"example-id","result":"ok"}
 {"schema_version":1,"event":"rheic.runtime.launch","component":"runtime","outcome":"ok","backend":"libkrun","kernel_digest":"example-id","rootfs_digest":"example-id","netdev":"gvproxy","boot_ms":0}
 {"schema_version":1,"event":"rheic.keeper.recover","component":"runtime","outcome":"ok","child_pid":0,"socket_repoint":true,"stale_refused":true,"task_state":"running"}
-{"schema_version":1,"event":"rheic.egress.decision","component":"gateway","outcome":"ok","direction":"in","host":"example.test","port":0,"proto":"tcp","action":"allow","reason":"OrgDeny","policy_generation":0,"l7_phase":0}
+{"schema_version":1,"event":"rheic.egress.decision","component":"gateway","outcome":"ok","direction":"in","host":"example.test","port":0,"proto":"tcp","action":"allow","policy_generation":0,"l7_phase":0}
 {"schema_version":1,"event":"rheic.egress.dns","component":"gateway","outcome":"ok","qname":"example.test","resolved_count":0,"ttl_ms":0,"rebind_suspected":true}
 {"schema_version":1,"event":"rheic.egress.audit_failure","component":"gateway","outcome":"failed","sink":"example-id","action_taken":"deny"}
 {"schema_version":1,"event":"rheic.fault.detected","component":"daemon","outcome":"ok","fault":"DaemonKill","recovery_action":"journal_reconcile","data_loss":"none"}
