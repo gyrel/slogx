@@ -114,6 +114,12 @@ func TestReasonOptionalityMatrix(t *testing.T) {
 	if ev.Attrs(Standard{})[10].Key != "reason" || ev.Attrs(Standard{})[10].Value.String() != string(KitCheckReasonManagedsticky) { // envelope 4 + kit_ref/source/hash/allow_local/require_sig/decision + reason
 		t.Errorf("denial reason attr position/value drift: %v", ev.Attrs(Standard{}))
 	}
+	if _, err := KitCheck(OutcomeDenied, KitCheckParams{Decision: KitCheckDecisionDeny, Reason: KitCheckReasonInvalidreference, Mode: KitCheckModeDaemonChecked}); err != nil {
+		t.Errorf("InvalidReference reason rejected: %v", err)
+	}
+	if _, err := KitCheck(OutcomeDenied, KitCheckParams{Decision: KitCheckDecisionDeny, Reason: KitCheckReasonPolicyunavailable, Mode: KitCheckModeDaemonChecked}); err != nil {
+		t.Errorf("PolicyUnavailable reason rejected: %v", err)
+	}
 	if _, err := EgressDecision(OutcomeOK, EgressDecisionParams{Direction: EgressDecisionDirectionOut, Proto: EgressDecisionProtoTCP, Action: EgressDecisionActionAllow, Reason: EgressDecisionReasonNorule}); !errors.Is(err, errInvalid) {
 		t.Error("egress allow with reason must be rejected")
 	}
