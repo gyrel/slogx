@@ -614,6 +614,8 @@ const (
 	KitCheckReasonLocalkitdisabled  KitCheckReason = "LocalKitDisabled"
 	KitCheckReasonSignaturerequired KitCheckReason = "SignatureRequired"
 	KitCheckReasonManagedsticky     KitCheckReason = "ManagedSticky"
+	KitCheckReasonInvalidreference  KitCheckReason = "InvalidReference"
+	KitCheckReasonPolicyunavailable KitCheckReason = "PolicyUnavailable"
 )
 
 // KitCheckMode is the catalog value for mode.
@@ -643,7 +645,7 @@ func KitCheck(outcome Outcome, p KitCheckParams) (Event, error) {
 		!valid(string(p.Mode), "offline", "daemon-checked") {
 		return Event{}, errInvalid
 	}
-	reason, ok := reasonFor(outcome, string(p.Reason), "SourceNotAllowed", "LocalKitDisabled", "SignatureRequired", "ManagedSticky")
+	reason, ok := reasonFor(outcome, string(p.Reason), "SourceNotAllowed", "LocalKitDisabled", "SignatureRequired", "ManagedSticky", "InvalidReference", "PolicyUnavailable")
 	if !ok {
 		return Event{}, errInvalid
 	}

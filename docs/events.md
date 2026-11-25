@@ -21,7 +21,7 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 | rheic.secret.write | daemon | INFO | ok, failed | secret_ref_id, vault_backend(keychain|credman|secretservice), placeholder_issued(bool) |
 | rheic.secret.substitute | daemon | INFO (ok), WARN (denied/failed) | ok, denied, failed | secret_ref_id, host, scheme=https, decision(substituted|dropped_header|refused), reason(InsecureScheme|VaultLocked|RefMissing; required exactly when outcome != ok, omitted on ok) |
 | rheic.secret.canary | daemon | INFO (hits=0), ERROR (hits>0) | ok, failed | scanned_stores(count), hits(count) |
-| rheic.kit.check | daemon | INFO | ok, denied | kit_ref, source, allowed_sources_hash, allow_local(bool), require_signature(bool), decision(allow|deny), reason(SourceNotAllowed|LocalKitDisabled|SignatureRequired|ManagedSticky; required exactly when outcome != ok, omitted on ok), mode(offline|daemon-checked) |
+| rheic.kit.check | daemon | INFO | ok, denied | kit_ref, source, allowed_sources_hash, allow_local(bool), require_signature(bool), decision(allow|deny), reason(SourceNotAllowed|LocalKitDisabled|SignatureRequired|ManagedSticky|InvalidReference|PolicyUnavailable; required exactly when outcome != ok, omitted on ok), mode(offline|daemon-checked) |
 | rheic.mcp.register | daemon | INFO | ok, denied | server_id_hash, challenge_issued(bool), stored(bool) |
 | rheic.mcp.attest | daemon | INFO | ok, denied, unsupported | server_id_hash, state(owned|absent|foreign), registry_included(bool) |
 | rheic.mcp.load | daemon | INFO | ok, denied, failed | server_id_hash, tools_count(count), approval_id |
