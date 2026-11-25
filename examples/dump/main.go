@@ -4,7 +4,7 @@ package main
 import (
 	"context"
 
-	"github.com/rheic/slogx"
+	"github.com/gyrel/slogx"
 )
 
 type Address struct {

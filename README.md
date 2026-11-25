@@ -1,10 +1,10 @@
 # slogx
 
-Structured logging helpers for Rheic components, built on Go's
+Structured logging helpers for Gyrel components, built on Go's
 [`log/slog`](https://pkg.go.dev/log/slog). The Go package name is `slogx`; the module
-path is `github.com/rheic/slogx`.
+path is `github.com/gyrel/slogx`.
 
-[![CI](https://github.com/rheic/slogx/actions/workflows/ci.yml/badge.svg)](https://github.com/rheic/slogx/actions/workflows/ci.yml)
+[![CI](https://github.com/gyrel/slogx/actions/workflows/ci.yml/badge.svg)](https://github.com/gyrel/slogx/actions/workflows/ci.yml)
 [![Go 1.27.4+](https://img.shields.io/badge/Go-1.27.4+-blue)](https://go.dev/dl/)
 
 > Status: alpha. Treat masking as defense in depth, not as a guarantee that
@@ -23,11 +23,11 @@ path is `github.com/rheic/slogx`.
 
 ## Install
 
-The module path is `github.com/rheic/slogx`. The first release is `v0.1.0`;
+The module path is `github.com/gyrel/slogx`. The first release is `v0.1.0`;
 expect 0.x API changes until a 1.0 tag is published:
 
 ```bash
-go get github.com/rheic/slogx@v0.1.0
+go get github.com/gyrel/slogx@v0.1.0
 ```
 
 For local development run checks with the module's own dependency graph:
@@ -45,7 +45,7 @@ import (
     "context"
     "log/slog"
 
-    "github.com/rheic/slogx"
+    "github.com/gyrel/slogx"
 )
 
 func main() {
@@ -211,7 +211,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
 ## Source attribution
 
 This repository was imported from the owner-authorized MIT-licensed
-`quarshell-slogx` sources in the `rheic/quarshell` archive at
+`quarshell-slogx` sources in the `gyrel/quarshell` archive at
 `archive-sources/quarshell-slogx`, commit
 `ac476dcc0e89b4efc9c3b2b484054026d9d32275`. The original copyright notice is retained
 in [LICENSE](LICENSE) and [NOTICE](NOTICE). Changes in this repository are limited to

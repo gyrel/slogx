@@ -1,4 +1,4 @@
-module github.com/rheic/slogx
+module github.com/gyrel/slogx
 
 go 1.27.4
 

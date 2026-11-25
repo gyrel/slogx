@@ -3,7 +3,7 @@
 ## Scope
 
 This repository provides structured logging helpers built on Go's
-`log/slog`. Its module path is `github.com/rheic/slogx` and its
+`log/slog`. Its module path is `github.com/gyrel/slogx` and its
 license is MIT. The code derives from the owner-authorized `quarshell-slogx`
 archive; see `NOTICE` for source attribution. The Go package name remains
 `slogx`.

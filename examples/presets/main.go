@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rheic/slogx"
+	"github.com/gyrel/slogx"
 )
 
 func main() {

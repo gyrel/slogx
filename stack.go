@@ -8,7 +8,7 @@ import (
 
 const (
 	stackSkipFrames     = 4
-	internalPackagePath = "github.com/rheic/slogx"
+	internalPackagePath = "github.com/gyrel/slogx"
 )
 
 func stackTrace(depth int) string {
