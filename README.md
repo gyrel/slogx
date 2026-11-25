@@ -222,3 +222,9 @@ logging semantics are otherwise unchanged.
 ## License
 
 MIT — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Diagnostic archive scanning is available in the [`redact` package](docs/redact.md). Its pattern-based findings have documented limits.
+
+### Structured event catalog
+
+The [event catalog](docs/events.md) provides typed constructors for schema version 1 events. Constructors reject invalid outcomes and enum values. Emit a constructed event with `event.Emit(ctx, logger.Logger, events.Standard{})`; the standard fields are optional. IDs, hashes, and hostnames must be supplied only for the purposes described in the catalog.

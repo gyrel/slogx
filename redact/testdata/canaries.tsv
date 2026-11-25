@@ -1,0 +1,13 @@
+jwt	eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijklmnop	removed
+bearer	Bearer abcdefghijklmnop	removed
+openai_key	sk-abcdefghijklmnopqrstuv	removed
+github_token	ghp_abcdefghijklmnopqrstuv	removed
+slack_token	xoxb-1234567890-abcdefgh	removed
+aws_access_key	AKIAABCDEFGHIJKLMNOP	removed
+pem_private_key	-----BEGIN PRIVATE KEY-----	removed
+inline_secret	password=canary	removed
+high_entropy	qwertyuiopASDFGHJKLzxcvbnm1234567890+/	removed
+url_userinfo	https://alice:canary@example.com/	removed
+url_query	https://example.com/?key=value	removed
+foreign_home	/home/bob/file	removed
+own_home	/Users/alice/file	removed
