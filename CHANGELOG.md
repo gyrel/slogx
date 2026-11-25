@@ -89,3 +89,5 @@ retain their original module-path references for traceability.
 
 - Token masking no longer emits stable fingerprints by default; `WithCorporateMasker(true)` enables them explicitly.
 - `RedactAuditText` removes URL query values and common inline credentials from audit details.
+
+- Add `rotate` writers for size-based rotation, bounded best-effort logging, and synchronous audit writes. See `docs/rotation.md` for limits and integration.
