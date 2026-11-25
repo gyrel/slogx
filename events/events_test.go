@@ -2,6 +2,7 @@ package events
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"os"
 	"reflect"
@@ -46,11 +47,19 @@ func catalogCases() []struct {
 		{"rheic.approval.expired", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return ApprovalExpired(o, ApprovalExpiredParams{}) }},
 		{"rheic.secret.write", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretWrite(o, SecretWriteParams{VaultBackend: "keychain"}) }},
 		{"rheic.secret.substitute", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
-			return SecretSubstitute(o, SecretSubstituteParams{Scheme: "https", Decision: "substituted", Reason: "InsecureScheme"})
+			reason := SecretSubstituteReason("")
+			if o != OutcomeOK {
+				reason = SecretSubstituteReasonInsecurescheme
+			}
+			return SecretSubstitute(o, SecretSubstituteParams{Scheme: SecretSubstituteSchemeHTTPS, Decision: SecretSubstituteDecisionSubstituted, Reason: reason})
 		}},
 		{"rheic.secret.canary", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return SecretCanary(o, SecretCanaryParams{}) }},
 		{"rheic.kit.check", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
-			return KitCheck(o, KitCheckParams{Decision: "allow", Reason: "SourceNotAllowed", Mode: "offline"})
+			reason := KitCheckReason("")
+			if o != OutcomeOK {
+				reason = KitCheckReasonSourcenotallowed
+			}
+			return KitCheck(o, KitCheckParams{Decision: KitCheckDecisionAllow, Reason: reason, Mode: KitCheckModeOffline})
 		}},
 		{"rheic.mcp.register", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return MCPRegister(o, MCPRegisterParams{}) }},
 		{"rheic.mcp.attest", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeUnsupported}, func(o Outcome) (Event, error) { return MCPAttest(o, MCPAttestParams{State: "owned"}) }},
@@ -65,7 +74,11 @@ func catalogCases() []struct {
 		}},
 		{"rheic.keeper.recover", string(ComponentRuntime), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return KeeperRecover(o, KeeperRecoverParams{TaskState: "running"}) }},
 		{"rheic.egress.decision", string(ComponentGateway), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) {
-			return EgressDecision(o, EgressDecisionParams{Direction: "in", Proto: "tcp", Action: "allow", Reason: "OrgDeny"})
+			reason := EgressDecisionReason("")
+			if o != OutcomeOK {
+				reason = EgressDecisionReasonOrgdeny
+			}
+			return EgressDecision(o, EgressDecisionParams{Direction: EgressDecisionDirectionIn, Proto: EgressDecisionProtoTCP, Action: EgressDecisionActionAllow, Reason: reason})
 		}},
 		{"rheic.egress.dns", string(ComponentGateway), slog.LevelDebug, []Outcome{OutcomeOK, OutcomeDenied}, func(o Outcome) (Event, error) { return EgressDNS(o, EgressDNSParams{}) }},
 		{"rheic.egress.audit_failure", string(ComponentGateway), slog.LevelError, []Outcome{OutcomeFailed}, func(o Outcome) (Event, error) {
@@ -81,6 +94,37 @@ func catalogCases() []struct {
 			return ObsIDRejected(o, ObsIDRejectedParams{Component: ComponentDaemon, Field: "op_id", Rule: "canonical_length", Regenerated: true})
 		}},
 		{"rheic.diagnose.build", "cli", slog.LevelInfo, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) { return DiagnoseBuild(o, DiagnoseBuildParams{Result: "ok"}) }},
+	}
+}
+
+func TestReasonOptionalityMatrix(t *testing.T) {
+	if _, err := SecretSubstitute(OutcomeOK, SecretSubstituteParams{Scheme: SecretSubstituteSchemeHTTPS, Decision: "substituted", Reason: "InsecureScheme"}); !errors.Is(err, errInvalid) {
+		t.Error("success with refusal reason must be rejected")
+	}
+	if _, err := SecretSubstitute(OutcomeDenied, SecretSubstituteParams{Scheme: SecretSubstituteSchemeHTTPS, Decision: "refused"}); !errors.Is(err, errInvalid) {
+		t.Error("denial without reason must be rejected")
+	}
+	if _, err := KitCheck(OutcomeOK, KitCheckParams{Decision: KitCheckDecisionAllow, Reason: KitCheckReasonManagedsticky, Mode: KitCheckModeOffline}); !errors.Is(err, errInvalid) {
+		t.Error("kit success with reason must be rejected")
+	}
+	ev, err := KitCheck(OutcomeDenied, KitCheckParams{Decision: KitCheckDecisionDeny, Reason: KitCheckReasonManagedsticky, Mode: KitCheckModeDaemonChecked})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ev.Attrs(Standard{})[10].Key != "reason" || ev.Attrs(Standard{})[10].Value.String() != string(KitCheckReasonManagedsticky) { // envelope 4 + kit_ref/source/hash/allow_local/require_sig/decision + reason
+		t.Errorf("denial reason attr position/value drift: %v", ev.Attrs(Standard{}))
+	}
+	if _, err := EgressDecision(OutcomeOK, EgressDecisionParams{Direction: EgressDecisionDirectionOut, Proto: EgressDecisionProtoTCP, Action: EgressDecisionActionAllow, Reason: EgressDecisionReasonNorule}); !errors.Is(err, errInvalid) {
+		t.Error("egress allow with reason must be rejected")
+	}
+	ev, err = EgressDecision(OutcomeOK, EgressDecisionParams{Direction: "out", Proto: "tcp", Action: "allow"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, a := range ev.Attrs(Standard{}) {
+		if a.Key == "reason" {
+			t.Error("empty reason attr must not be emitted")
+		}
 	}
 }
 
@@ -246,7 +290,7 @@ func TestConditionalLevelsAndPeerCredentials(t *testing.T) {
 	if err != nil || e.Level() != slog.LevelError {
 		t.Fatalf("canary: %v %v", e.Level(), err)
 	}
-	e, err = EgressDecision(OutcomeDenied, EgressDecisionParams{Direction: "out", Proto: "tcp", Action: "deny", Reason: "NoRule"})
+	e, err = EgressDecision(OutcomeDenied, EgressDecisionParams{Direction: EgressDecisionDirectionOut, Proto: EgressDecisionProtoTCP, Action: EgressDecisionActionDeny, Reason: EgressDecisionReasonNorule})
 	if err != nil || e.Level() != slog.LevelWarn {
 		t.Fatalf("egress: %v %v", e.Level(), err)
 	}
