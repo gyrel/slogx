@@ -10,6 +10,8 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 | gyrel.daemon.ready | daemon | INFO | ok | startup_ms(count), recovered_count(count) |
 | gyrel.daemon.shutdown | daemon | INFO | ok, failed | signal(string-id), inflight_ops(count), flush_ok(bool) |
 | gyrel.daemon.reconcile | daemon | INFO | ok | scanned(count), adopted(count), left_alone(count), generation_mismatch(count) |
+| gyrel.port.publish-granted | daemon | INFO | ok | sandbox_id(string-id), guest_port(1–65535), host_port(1–65535), protocol(tcp\|udp), bind_cidr_label, bind_ip |
+| gyrel.port.publish-refused | daemon | WARN | denied | sandbox_id(string-id), requested_ip, reason(bind_forbidden\|allowlist_invalid) |
 | gyrel.journal.recover | daemon | WARN | ok, denied, failed | finding(MarkerMissing|MarkerMismatch|SymlinkRefused|OutsideRoot|ParseFailed|TempOrphan|ForeignResource|UnsupportedOwnership), action(LEAVE|DELETE|ADOPT), resource_kind(string-id), path_hash |
 | gyrel.journal.commit | daemon | DEBUG | ok, failed | journal_id(string-id), fsync_ok(bool), rename_ok(bool) |
 | gyrel.create.unwind | daemon | WARN | ok, failed | stage(string-id), cleanup_ok(bool), network_stopped(bool), reason(string-id) |
@@ -68,6 +70,8 @@ Every event has `schema_version=1`, `event`, `component`, and `outcome`. Optiona
 {"schema_version":1,"event":"gyrel.daemon.ready","component":"daemon","outcome":"ok","startup_ms":0,"recovered_count":0}
 {"schema_version":1,"event":"gyrel.daemon.shutdown","component":"daemon","outcome":"ok","signal":"example-id","inflight_ops":0,"flush_ok":true}
 {"schema_version":1,"event":"gyrel.daemon.reconcile","component":"daemon","outcome":"ok","scanned":0,"adopted":0,"left_alone":0,"generation_mismatch":0}
+{"schema_version":1,"event":"gyrel.port.publish-granted","component":"daemon","outcome":"ok","sandbox_id":"example-id","guest_port":8080,"host_port":18080,"protocol":"tcp","bind_cidr_label":"loopback","bind_ip":"127.0.0.1"}
+{"schema_version":1,"event":"gyrel.port.publish-refused","component":"daemon","outcome":"denied","sandbox_id":"example-id","requested_ip":"192.0.2.1","reason":"bind_forbidden"}
 {"schema_version":1,"event":"gyrel.journal.recover","component":"daemon","outcome":"ok","finding":"MarkerMissing","action":"LEAVE","resource_kind":"example-id","path_hash":"example-id"}
 {"schema_version":1,"event":"gyrel.journal.commit","component":"daemon","outcome":"ok","journal_id":"example-id","fsync_ok":true,"rename_ok":true}
 {"schema_version":1,"event":"gyrel.create.unwind","component":"daemon","outcome":"ok","stage":"example-id","cleanup_ok":true,"network_stopped":true,"reason":"example-id"}

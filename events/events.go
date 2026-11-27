@@ -215,6 +215,60 @@ func DaemonReconcile(outcome Outcome, p DaemonReconcileParams) (Event, error) {
 	), nil
 }
 
+// PortPublishGrantedParams contains the catalog fields for gyrel.port.publish-granted.
+type PortPublishGrantedParams struct {
+	SandboxID     string
+	GuestPort     uint16
+	HostPort      uint16
+	Protocol      string
+	BindCIDRLabel string
+	BindIP        string
+}
+
+// PortPublishGranted constructs gyrel.port.publish-granted from a successful port publication.
+func PortPublishGranted(outcome Outcome, p PortPublishGrantedParams) (Event, error) {
+	if outcome != OutcomeOK || p.SandboxID == "" || p.BindCIDRLabel == "" ||
+		p.GuestPort == 0 || p.HostPort == 0 || !valid(p.Protocol, "tcp", "udp") {
+		return Event{}, errInvalid
+	}
+	return build("gyrel.port.publish-granted", "daemon", outcome, slog.LevelInfo,
+		slog.String("sandbox_id", p.SandboxID),
+		slog.Uint64("guest_port", uint64(p.GuestPort)),
+		slog.Uint64("host_port", uint64(p.HostPort)),
+		slog.String("protocol", p.Protocol),
+		slog.String("bind_cidr_label", p.BindCIDRLabel),
+		slog.String("bind_ip", p.BindIP),
+	), nil
+}
+
+// PortPublishRefusedReason is the catalog value for reason.
+type PortPublishRefusedReason string
+
+const (
+	PortPublishRefusedReasonBindForbidden    PortPublishRefusedReason = "bind_forbidden"
+	PortPublishRefusedReasonAllowlistInvalid PortPublishRefusedReason = "allowlist_invalid"
+)
+
+// PortPublishRefusedParams contains the catalog fields for gyrel.port.publish-refused.
+type PortPublishRefusedParams struct {
+	SandboxID   string
+	RequestedIP string
+	Reason      PortPublishRefusedReason
+}
+
+// PortPublishRefused constructs gyrel.port.publish-refused; invalid enum values are rejected.
+func PortPublishRefused(outcome Outcome, p PortPublishRefusedParams) (Event, error) {
+	if outcome != OutcomeDenied || p.SandboxID == "" ||
+		!valid(string(p.Reason), string(PortPublishRefusedReasonBindForbidden), string(PortPublishRefusedReasonAllowlistInvalid)) {
+		return Event{}, errInvalid
+	}
+	return build("gyrel.port.publish-refused", "daemon", outcome, slog.LevelWarn,
+		slog.String("sandbox_id", p.SandboxID),
+		slog.String("requested_ip", p.RequestedIP),
+		slog.String("reason", string(p.Reason)),
+	), nil
+}
+
 // JournalRecoverFinding is the catalog value for finding.
 type JournalRecoverFinding string
 
@@ -1227,6 +1281,8 @@ func peercred(outcome Outcome, level slog.Level, p PeerCredRejectParams, attrs .
 // canonicalEventName accepts only names in the catalog.
 func canonicalEventName(name string) bool {
 	switch name {
+	case "gyrel.port.publish-granted", "gyrel.port.publish-refused":
+		return true
 	case "gyrel.daemon.start", "gyrel.daemon.ready", "gyrel.daemon.shutdown", "gyrel.daemon.reconcile", "gyrel.journal.recover", "gyrel.journal.commit", "gyrel.create.unwind", "gyrel.peercred.reject", "gyrel.platform.unsupported", "gyrel.approval.requested", "gyrel.approval.responded", "gyrel.approval.expired", "gyrel.secret.write", "gyrel.secret.substitute", "gyrel.secret.canary", "gyrel.kit.check", "gyrel.mcp.register", "gyrel.mcp.attest", "gyrel.mcp.load", "gyrel.mcp.unload", "gyrel.mcp.inspect", "gyrel.template.save", "gyrel.template.load", "gyrel.runtime.verify", "gyrel.runtime.launch", "gyrel.keeper.recover", "gyrel.egress.decision", "gyrel.egress.dns", "gyrel.egress.audit_failure", "gyrel.fault.detected", "gyrel.obs.log_dropped", "gyrel.obs.id_rejected", "gyrel.diagnose.build":
 		return true
 	default:

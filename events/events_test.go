@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+const portTestSandboxID = "sandbox-1"
+
 func catalogCases() []struct {
 	name, component string
 	level           slog.Level
@@ -29,6 +31,12 @@ func catalogCases() []struct {
 		{"gyrel.daemon.ready", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReady(o, DaemonReadyParams{}) }},
 		{"gyrel.daemon.shutdown", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK, OutcomeFailed}, func(o Outcome) (Event, error) { return DaemonShutdown(o, DaemonShutdownParams{}) }},
 		{"gyrel.daemon.reconcile", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) { return DaemonReconcile(o, DaemonReconcileParams{}) }},
+		{"gyrel.port.publish-granted", string(ComponentDaemon), slog.LevelInfo, []Outcome{OutcomeOK}, func(o Outcome) (Event, error) {
+			return PortPublishGranted(o, PortPublishGrantedParams{SandboxID: portTestSandboxID, GuestPort: 1, HostPort: 65535, Protocol: "tcp", BindCIDRLabel: "loopback", BindIP: "127.0.0.1"})
+		}},
+		{"gyrel.port.publish-refused", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeDenied}, func(o Outcome) (Event, error) {
+			return PortPublishRefused(o, PortPublishRefusedParams{SandboxID: portTestSandboxID, RequestedIP: "192.0.2.1", Reason: PortPublishRefusedReasonBindForbidden})
+		}},
 		{"gyrel.journal.recover", string(ComponentDaemon), slog.LevelWarn, []Outcome{OutcomeOK, OutcomeDenied, OutcomeFailed}, func(o Outcome) (Event, error) {
 			return JournalRecover(o, JournalRecoverParams{Finding: "MarkerMissing", Action: "LEAVE"})
 		}},
@@ -139,13 +147,13 @@ func TestConstructorsAndDocs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rows := regexp.MustCompile(`(?m)^\| (gyrel\.[a-z0-9_.]+) \|`).FindAllStringSubmatch(string(doc), -1)
+	rows := regexp.MustCompile(`(?m)^\| (gyrel\.[a-z0-9_.-]+) \|`).FindAllStringSubmatch(string(doc), -1)
 	docs := map[string]int{}
 	for _, row := range rows {
 		docs[row[1]]++
 	}
 	cases := catalogCases()
-	if len(cases) != 33 {
+	if len(cases) != 35 {
 		t.Fatalf("got %d constructors", len(cases))
 	}
 	for _, tc := range cases {
@@ -228,11 +236,18 @@ func TestNoFreeFormFields(t *testing.T) {
 			}
 		}
 	}
+	// Port publication uses explicitly named string fields in its public API.
+	portStrings := map[reflect.Type]map[string]bool{
+		reflect.TypeOf(PortPublishGrantedParams{}): {"SandboxID": true, "Protocol": true, "BindCIDRLabel": true, "BindIP": true},
+		reflect.TypeOf(PortPublishRefusedParams{}): {"SandboxID": true, "RequestedIP": true},
+	}
 	for _, typ := range []reflect.Type{
 		reflect.TypeOf(DaemonStartParams{}),
 		reflect.TypeOf(DaemonReadyParams{}),
 		reflect.TypeOf(DaemonShutdownParams{}),
 		reflect.TypeOf(DaemonReconcileParams{}),
+		reflect.TypeOf(PortPublishGrantedParams{}),
+		reflect.TypeOf(PortPublishRefusedParams{}),
 		reflect.TypeOf(JournalRecoverParams{}),
 		reflect.TypeOf(JournalCommitParams{}),
 		reflect.TypeOf(CreateUnwindParams{}),
@@ -265,7 +280,7 @@ func TestNoFreeFormFields(t *testing.T) {
 	} {
 		for i := 0; i < typ.NumField(); i++ {
 			f := typ.Field(i)
-			if f.Type.Kind() == reflect.Interface || f.Type.Kind() == reflect.Map || f.Type == reflect.TypeOf("") {
+			if f.Type.Kind() == reflect.Interface || f.Type.Kind() == reflect.Map || (f.Type == reflect.TypeOf("") && !portStrings[typ][f.Name]) {
 				t.Errorf("%s.%s has untyped free-form field", typ.Name(), f.Name)
 			}
 		}
@@ -311,5 +326,71 @@ func TestConditionalLevelsAndPeerCredentials(t *testing.T) {
 	}
 	if _, err = PeerCredReject(OutcomeDenied, PeerCredRejectParams{Transport: "pipe"}); err == nil {
 		t.Fatal("missing SID hash accepted")
+	}
+}
+
+func TestPortPublishGranted(t *testing.T) {
+	p := PortPublishGrantedParams{SandboxID: portTestSandboxID, GuestPort: 1, HostPort: 65535, Protocol: "udp", BindCIDRLabel: "loopback", BindIP: "::1"}
+	e, err := PortPublishGranted(OutcomeOK, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opID := ID("operation-1")
+	want := []slog.Attr{
+		slog.String("sandbox_id", p.SandboxID),
+		slog.Uint64("guest_port", 1),
+		slog.Uint64("host_port", 65535),
+		slog.String("protocol", "udp"),
+		slog.String("bind_cidr_label", p.BindCIDRLabel),
+		slog.String("bind_ip", p.BindIP),
+		slog.String("op_id", string(opID)),
+	}
+	if got := e.Attrs(Standard{OpID: &opID})[4:]; !reflect.DeepEqual(got, want) {
+		t.Errorf("attributes = %v, want %v", got, want)
+	}
+
+	for _, tc := range []struct {
+		name   string
+		change func(*PortPublishGrantedParams)
+	}{
+		{"empty sandbox ID", func(p *PortPublishGrantedParams) { p.SandboxID = "" }},
+		{"zero guest port", func(p *PortPublishGrantedParams) { p.GuestPort = 0 }},
+		{"zero host port", func(p *PortPublishGrantedParams) { p.HostPort = 0 }},
+		{"empty protocol", func(p *PortPublishGrantedParams) { p.Protocol = "" }},
+		{"bad protocol", func(p *PortPublishGrantedParams) { p.Protocol = "icmp" }},
+		{"empty bind CIDR label", func(p *PortPublishGrantedParams) { p.BindCIDRLabel = "" }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			invalid := p
+			tc.change(&invalid)
+			if _, err := PortPublishGranted(OutcomeOK, invalid); !errors.Is(err, errInvalid) {
+				t.Errorf("error = %v, want %v", err, errInvalid)
+			}
+		})
+	}
+}
+
+func TestPortPublishRefused(t *testing.T) {
+	p := PortPublishRefusedParams{SandboxID: portTestSandboxID, RequestedIP: "192.0.2.1", Reason: PortPublishRefusedReasonAllowlistInvalid}
+	e, err := PortPublishRefused(OutcomeDenied, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []slog.Attr{
+		slog.String("sandbox_id", p.SandboxID),
+		slog.String("requested_ip", p.RequestedIP),
+		slog.String("reason", "allowlist_invalid"),
+	}
+	if got := e.Attrs(Standard{})[4:]; !reflect.DeepEqual(got, want) {
+		t.Errorf("attributes = %v, want %v", got, want)
+	}
+	for _, invalid := range []PortPublishRefusedParams{
+		{SandboxID: p.SandboxID, RequestedIP: p.RequestedIP},
+		{SandboxID: p.SandboxID, RequestedIP: p.RequestedIP, Reason: "unknown"},
+		{RequestedIP: p.RequestedIP, Reason: p.Reason},
+	} {
+		if _, err := PortPublishRefused(OutcomeDenied, invalid); !errors.Is(err, errInvalid) {
+			t.Errorf("PortPublishRefused(%+v) error = %v, want %v", invalid, err, errInvalid)
+		}
 	}
 }
