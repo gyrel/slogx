@@ -4,6 +4,8 @@
 
 - Add the typed version 1 structured event catalog and documentation.
 
+- Add typed port publication grant and refusal events to the daemon catalog.
+
 - Add heuristic diagnostic archive scanning in `redact`.
 
 - Module path renamed `github.com/rheic/slogx` → `github.com/gyrel/slogx`; event
